@@ -127,7 +127,7 @@ const ST={new:"جديد",accepted:"قيد التجهيز",delivered:"تم الت
 const DL={driver:"دلفري",wasit:"الوسيط",pickup:"استلام من المكتب",parts:"قطع غيار"};
 const FACETS='<svg class="facets" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 18 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.5" stroke-width="2.2"/><path d="M52 18 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.35" stroke-width="2.2"/><path d="M41 37 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="2.2"/><path d="M63 37 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.3" stroke-width="2.2"/><path d="M52 56 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.4" stroke-width="2.2"/><path d="M74 56 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.25" stroke-width="2.2"/><path d="M30 56 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.2" stroke-width="2.2"/></svg>';
 
-let S={about:"",ph:[{l:"الأجهزة",n:"07719805620"},{l:"الصيانة",n:"07719805620"}],wa:"9647719805620",dr:[{n:"المندوب",p:"9647719805620"}],fee:{d:3000,w:5000,p:0}};
+let S={about:"",ph:[{l:"الأجهزة",n:"07719805620"},{l:"الصيانة",n:"07719805620"}],wa:"9647719805620",dr:[{n:"المندوب",p:"9647719805620"}],fee:{d:2000,w:5000,p:0}};
 let PR=[],loaded=false,MY=[],OWN=false,cat="all",q="",tab="home",cart={},dm="d",dr=0,cu={n:"",p:"",a:"",l:""},AC=null,ed=null,eimg="",arm=null,FAV=new Set(),srt="def",atab="p",STK={},ORD=[],stf="all",MV=null;
 try{cart=JSON.parse(localStorage.getItem("md_cart")||"{}")}catch(e){}
 try{AC=JSON.parse(localStorage.getItem("md_acct")||"null")}catch(e){AC=null}
@@ -205,7 +205,7 @@ function cartView(){
  const t=sum()[1],fee=S.fee[dm],fz=n=>n?fmt(n):"مجاني";
  v.innerHTML=`<div style="padding:8px 16px 20px"><div class="sec" style="padding:8px 0"><h2>سلتك</h2><span>${sum()[0]} قطعة</span></div>
  ${ids.map(id=>{const p=G(id);return`<div class="line">${p.img?`<img alt="" src="${E(p.img)}">`:""}<div class="t"><b>${E(p.n)}</b><span>${fmt(p.p*cart[id])}</span></div><div class="step"><button data-inc="${E(id)}" aria-label="زيادة">${I("plus")}</button><b>${cart[id]}</b><button data-dec="${E(id)}" aria-label="تقليل">${I("minus")}</button></div></div>`}).join("")}
- <h3>طريقة الاستلام</h3><div class="seg">${[["d","دلفري"],["w","الوسيط"],["p","من المكتب"]].map(([k,l])=>`<button class="opt${dm==k?" on":""}" data-dm="${k}">${l}<small>${fz(S.fee[k])}</small></button>`).join("")}</div>
+ <h3>طريقة الاستلام</h3><div class="seg">${[["d","داخل الموصل"],["w","باقي المحافظات"],["p","من المكتب"]].map(([k,l])=>`<button class="opt${dm==k?" on":""}" data-dm="${k}">${l}<small>${fz(S.fee[k])}</small></button>`).join("")}</div>
  ${dm=="d"?`<div class="chips">${S.dr.map((d,i)=>`<button class="chip${dr==i?" on":""}" data-dr="${i}">المندوب ${E(d.n)}</button>`).join("")}</div>`:""}
  <h3>معلومات الطلب</h3>
  <label class="f">الاسم<input class="fld" id="cn" value="${E(cu.n)}" autocomplete="name"></label>
@@ -215,7 +215,7 @@ function cartView(){
  <p class="err" id="er"></p>
  <button class="btn" id="send">${I("wa")}${dm=="d"?`أرسل الطلب للمندوب ${E(S.dr[dr].n)}`:"أرسل الطلب للمكتب"}</button>
  ${dm=="d"?`<button class="btn ghost mt" id="send2">أرسل نسخة للمكتب</button>`:""}</div>`}
-function orderText(no){const t=sum()[1],fee=S.fee[dm],fz=n=>n?fmt(n):"مجاني",dl={d:"دلفري داخل الموصل (المندوب "+S.dr[dr].n+")",w:"الوسيط",p:"استلام من المكتب"}[dm];
+function orderText(no){const t=sum()[1],fee=S.fee[dm],fz=n=>n?fmt(n):"مجاني",dl={d:"دلفري داخل الموصل (المندوب "+S.dr[dr].n+")",w:"توصيل للمحافظات (الوسيط)",p:"استلام من المكتب"}[dm];
  return["طلب جديد - دولار وسنت للموبايل"+(no?" #"+no:""),"","الاسم: "+cu.n,"الهاتف: "+cu.p,dm=="p"?null:"العنوان: "+cu.a,cu.l?"الموقع: "+cu.l:null,"التوصيل: "+dl,"","المنتجات:",...Object.keys(cart).filter(G).map(id=>"• "+G(id).n+" × "+cart[id]+" = "+fmt(G(id).p*cart[id])),"","مجموع المنتجات: "+fmt(t),"كلفة التوصيل: "+fz(fee),"الإجمالي: "+fmt(t+fee)].filter(x=>x!==null).join("\n")}
 async function send(to,keep){
  if(!cu.n.trim()||cu.p.replace(/\D/g,"").length<10||(dm!="p"&&!cu.a.trim()&&!cu.l)){er("اكتب الاسم ورقم هاتف صحيح والعنوان حتى نكمل الطلب.");return}
@@ -320,7 +320,7 @@ function openDrawer(){drawer();$("#dw").classList.add("on");$("#dov").classList.
 function closeDrawer(){$("#dw").classList.remove("on");$("#dov").classList.remove("on");$("#dw").setAttribute("aria-hidden","true");$("#menu").setAttribute("aria-expanded","false")}
 function aboutView(){const ab=S.about||ABOUT_DEF;open(`<div class="hd"><h2>من نحن</h2><button class="x" data-close aria-label="إغلاق">${I("x")}</button></div><div class="aboutc"><div class="mark big3">${LOGO}</div><b>دولار وسنت للموبايل</b><span>الموصل</span></div><p class="abt">${E(ab).replace(/\n/g,"<br>")}</p>
  <h3>تواصل معنا</h3>${S.ph.map(x=>`<a class="line" href="tel:${E(x.n)}"><span class="t"><b>${E(x.l)}</b><span class="ltr">${E(x.n)}</span></span>${I("phone")}</a>`).join("")}<a class="line" href="https://wa.me/${E(S.wa)}" target="_blank" rel="noopener"><span class="t"><b>واتساب الطلبات</b><span class="ltr">+${E(S.wa)}</span></span>${I("wa")}</a>
- <h3>التوصيل</h3><p class="hint">دلفري داخل الموصل ${fmt(S.fee.d)}، الوسيط ${fmt(S.fee.w)}، والاستلام من المكتب ${S.fee.p?fmt(S.fee.p):"مجاني"}.</p>
+ <h3>التوصيل</h3><p class="hint">دلفري داخل الموصل ${fmt(S.fee.d)}، باقي المحافظات ${fmt(S.fee.w)}، والاستلام من المكتب ${S.fee.p?fmt(S.fee.p):"مجاني"}.</p>
  <button class="btn mt" id="shapp4">${I("share")}شارك التطبيق</button>`)}
 /* share */
 const appUrl=()=>location.origin+location.pathname;
@@ -396,7 +396,7 @@ document.addEventListener("keydown",e=>{if(e.key=="Escape"){close();closeDrawer(
 /* boot */
 shell();render();techView();
 API.onProducts(L=>{const first=!loaded;PR=mergeACC(L).filter(p=>+p.p>=500&&+p.p<=4500).map(p=>({...p,p:Math.round(p.p/375)*375})).map(p=>p.img&&/^(p\d+|products\/x\d+)\.jpg$/.test(p.img)?{...p,img:p.img+"?v=7"}:p);loaded=true;if(first)setTimeout(checkHash,0);for(const id in cart)if(!G(id))delete cart[id];if(tab=="home"){grid();mdNew()}else if(tab=="cart")cartView();badge();if(OWN&&atab=="p"&&$("#ad")&&$("#sh").classList.contains("on"))prodTab()});
-API.onSettings(x=>{S={np:x.np||"",nk:x.nk||"",cm:+x.cm||0,about:x.about||"",ph:(x.ph&&x.ph.length)?x.ph:S.ph,wa:x.wa||S.wa,dr:(x.dr&&x.dr.length>1)?x.dr:S.dr,fee:{...S.fee,...(x.fee||{})}};if(tab=="cart")cartView()});
+API.onSettings(x=>{S={np:x.np||"",nk:x.nk||"",cm:+x.cm||0,about:x.about||"",ph:(x.ph&&x.ph.length)?x.ph:S.ph,wa:x.wa||S.wa,dr:(x.dr&&x.dr.length>1)?x.dr:S.dr,fee:{...S.fee,...(x.fee||{}),d:2000,w:5000}};if(tab=="cart")cartView()});
 API.onUser(o=>{OWN=o;if(OWN)API.onStock(m=>{STK=m;if(atab=="k"&&$("#ad")&&$("#sh").classList.contains("on"))stockTab()});$("#adm").hidden=!OWN;if(OWN)hideGate();else gate();if(tab=="me")meView();if(tab=="home")grid()});
 API.onMyOrders(L=>{MY=L;if(tab=="orders")ordersView()});
 let dp=null;const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
