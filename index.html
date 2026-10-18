@@ -395,7 +395,7 @@ document.addEventListener("change",e=>{if(e.target.id!="ef"||!e.target.files[0])
 document.addEventListener("keydown",e=>{if(e.key=="Escape"){close();closeDrawer()}});
 /* boot */
 shell();render();techView();
-API.onProducts(L=>{const first=!loaded;PR=mergeACC(L).filter(p=>+p.p>=500&&+p.p<=4500).map(p=>({...p,p:Math.round(p.p/375)*375})).map(p=>p.img&&/^(p\d+|products\/x\d+)\.jpg$/.test(p.img)?{...p,img:p.img+"?v=7"}:p);loaded=true;if(first)setTimeout(checkHash,0);for(const id in cart)if(!G(id))delete cart[id];if(tab=="home"){grid();mdNew()}else if(tab=="cart")cartView();badge();if(OWN&&atab=="p"&&$("#ad")&&$("#sh").classList.contains("on"))prodTab()});
+API.onProducts(L=>{const first=!loaded;PR=mergeACC(L).filter(p=>+p.p>=500&&+p.p<=4500).map(p=>({...p,p:Math.round(p.p/375)*375})).map(p=>p.img&&/^(p\d+|products\/x\d+)\.jpg$/.test(p.img)?{...p,img:p.img+"?v=8"}:p);loaded=true;if(first)setTimeout(checkHash,0);for(const id in cart)if(!G(id))delete cart[id];if(tab=="home"){grid();mdNew()}else if(tab=="cart")cartView();badge();if(OWN&&atab=="p"&&$("#ad")&&$("#sh").classList.contains("on"))prodTab()});
 API.onSettings(x=>{S={np:x.np||"",nk:x.nk||"",cm:+x.cm||0,about:x.about||"",ph:(x.ph&&x.ph.length)?x.ph:S.ph,wa:x.wa||S.wa,dr:(x.dr&&x.dr.length>1)?x.dr:S.dr,fee:{...S.fee,...(x.fee||{}),d:2000,w:5000}};if(tab=="cart")cartView()});
 API.onUser(o=>{OWN=o;if(OWN)API.onStock(m=>{STK=m;if(atab=="k"&&$("#ad")&&$("#sh").classList.contains("on"))stockTab()});$("#adm").hidden=!OWN;if(OWN)hideGate();else gate();if(tab=="me")meView();if(tab=="home")grid()});
 API.onMyOrders(L=>{MY=L;if(tab=="orders")ordersView()});
