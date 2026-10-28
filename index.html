@@ -600,5 +600,14 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-mbr],[data
  if(d.mbr){sec="acc";cat="all";q="";brd=d.mbr;home();window.scrollTo(0,0)}
  else if(d.mfx!==undefined){sec="fix";cat="m";q="";pbM="";pbB=+d.mfx;home();window.scrollTo(0,0)}});
 document.addEventListener("submit",e=>{if(e.target.id!="msr")return;e.preventDefault();const v=document.getElementById("mq").value.trim();sec="acc";cat="all";brd="";q=v.toLowerCase();home();const i=document.getElementById("q");if(i)i.value=v;grid();window.scrollTo(0,0)});
+(function(){let lastBack=0;const guard=()=>{try{history.pushState({g:1},"",location.href)}catch(e){}};
+if(!(history.state&&history.state.g))guard();
+window.addEventListener("popstate",()=>{const dw=document.getElementById("dw"),sh=document.getElementById("sh");
+ if(dw&&dw.classList.contains("on")){closeDrawer();guard();return}
+ if(sh&&sh.classList.contains("on")){close();guard();return}
+ if(tab!="home"){setTab("home");guard();return}
+ if(sec){sec="";cat="all";q="";brd="";home();window.scrollTo(0,0);guard();return}
+ const now=Date.now();if(now-lastBack<2000){history.back();return}
+ lastBack=now;toast("اضغط رجوع مرة ثانية للخروج");guard()})})();
 
 </script></body></html>
