@@ -198,7 +198,7 @@ const imgTag=(p,cls="")=>p.img?`<img class="${cls}" loading="lazy" decoding="asy
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("on"),2200)}
 function shell(){
  $("#root").innerHTML=`<div class="app">
- <header class="top"><button class="iconbtn" id="menu" aria-label="القائمة" aria-expanded="false" aria-controls="dw">${I("menu")}</button><div class="mark">${LOGO}</div><div class="brand"><b>دولار وسنت</b><span>للموبايل · الموصل</span></div><button class="iconbtn" id="shapp2" aria-label="شارك التطبيق">${I("share")}</button><button class="iconbtn" id="inst" hidden aria-label="تثبيت التطبيق">${I("dl")}</button><button class="iconbtn" id="adm" hidden aria-label="لوحة الإدارة">${I("gear")}</button></header>
+ <header class="top"><button class="iconbtn" id="menu" aria-label="القائمة" aria-expanded="false" aria-controls="dw">${I("menu")}</button><div class="mark" style="padding:0;overflow:hidden;background:#fff"><img src="md-head.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top"></div><div class="brand"><b>دولار وسنت</b><span>للموبايل · الموصل</span></div><button class="iconbtn" id="shapp2" aria-label="شارك التطبيق">${I("share")}</button><button class="iconbtn" id="inst" hidden aria-label="تثبيت التطبيق">${I("dl")}</button><button class="iconbtn" id="adm" hidden aria-label="لوحة الإدارة">${I("gear")}</button></header>
  <main id="view"></main></div>
  <nav class="nav" aria-label="التنقل">
  <button data-tab="home" class="on">${I("home")}الرئيسية</button>
@@ -405,7 +405,7 @@ function meView(){$("#view").innerHTML=`<div style="padding:8px 16px 20px">${sta
  <h3>تواصل ومشاركة</h3><div class="acts"><button class="act" data-chatgo>${I("chat")}راسلنا</button><a class="act" href="tel:+${E(S.wa)}">${I("phone")}اتصال</a><button class="act" id="shapp">${I("share")}شارك التطبيق</button></div>
  ${OWN?`<button class="btn mt" id="adm2">${I("gear")}${ROLE=="a"?"لوحة المشرف":"لوحة الإدارة"}</button><button class="btn ghost mt" id="olo">خروج من الإدارة</button>`:`<button class="lnk mt" id="own" style="display:block;margin:28px auto 0">دخول المالك أو المشرف</button>`}</div>`}
 function gate(){if(AC||OWN||$("#gate")||/^#t=/.test(location.hash))return;const g=document.createElement("div");g.className="gate";g.id="gate";
- g.innerHTML=`<div class="top-g">${FACETS.replace('class="facets"','class="facets" style="position:absolute;width:300px;inset-inline-end:-90px;top:-90px;opacity:.9"')}${LOGO.replace("<svg ","<svg class=\"logo\" ")}<h1>أهلاً بك في دولار وسنت</h1><p>سجّل مرة وحدة وبياناتك تنملأ بكل طلب</p></div>
+ g.innerHTML=`<div class="top-g">${FACETS.replace('class="facets"','class="facets" style="position:absolute;width:300px;inset-inline-end:-90px;top:-90px;opacity:.9"')}<img class="logo" src="md-head.png" alt="" style="width:150px;height:auto;filter:drop-shadow(0 10px 18px #0003)"><h1>أهلاً بك في دولار وسنت</h1><p>سجّل مرة وحدة وبياناتك تنملأ بكل طلب</p></div>
  <form id="gf" novalidate><label class="f">الاسم<input class="fld" id="gn" autocomplete="name" required></label><label class="f">رقم الهاتف<input class="fld" id="gp" type="tel" inputmode="tel" placeholder="07xxxxxxxxx" autocomplete="tel" required></label><label class="f">العنوان (اختياري)<input class="fld" id="ga" placeholder="المنطقة، الحي"></label><p class="err" id="ge"></p><button class="btn" type="submit">ادخل للمتجر</button><button class="lnk" type="button" id="own">دخول المالك أو المشرف</button></form>`;
  document.body.appendChild(g);g.querySelector("#gf").addEventListener("submit",e=>{e.preventDefault();const n=$("#gn").value.trim(),p=$("#gp").value.replace(/\s/g,""),a=$("#ga").value.trim();if(!n||p.replace(/\D/g,"").length<10){$("#ge").textContent="اكتب اسمك ورقم هاتف من 11 رقم.";return}AC={n,p,a};sa();cu.n=n;cu.p=p;cu.a=a;API.saveCustomer(AC);g.remove();render();checkHash()})}
 const hideGate=()=>{const g=$("#gate");if(g)g.remove()};
@@ -472,7 +472,7 @@ async function orderStock(o,sign){const ops=(o.items||[]).filter(i=>G(i.id)).map
 
 /* drawer */
 const ABOUT_DEF="دولار وسنت للموبايل في الموصل. نبيع ونشتري الأجهزة الجديدة والمستعملة، ونسوي صيانة وبرمجة الأجهزة، وعندنا كل ملحقات الموبايل من شواحن وكيبلات وسماعات وباور بانك.";
-function drawer(){const n=sum()[0];$("#dw").innerHTML=`<div class="dhead"><div class="mark big2">${LOGO}</div><div><b>دولار وسنت</b><span>للموبايل · الموصل</span></div></div>
+function drawer(){const n=sum()[0];$("#dw").innerHTML=`<div class="dhead"><div class="mark big2" style="padding:0;overflow:hidden;background:#fff"><img src="md-head.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top"></div><div><b>دولار وسنت</b><span>للموبايل · الموصل</span></div></div>
  <nav class="dnav">
  <button data-go="home">${I("home")}الرئيسية</button>
  <button data-sec="fix">${I("tool")}الصيانة وقطع الغيار</button>
@@ -493,7 +493,7 @@ function drawer(){const n=sum()[0];$("#dw").innerHTML=`<div class="dhead"><div c
  </nav><p class="dfoot">دولار وسنت للموبايل</p>`}
 function openDrawer(){drawer();$("#dw").classList.add("on");$("#dov").classList.add("on");$("#dw").setAttribute("aria-hidden","false");$("#menu").setAttribute("aria-expanded","true");const f=$("#dw button");f&&f.focus()}
 function closeDrawer(){$("#dw").classList.remove("on");$("#dov").classList.remove("on");$("#dw").setAttribute("aria-hidden","true");$("#menu").setAttribute("aria-expanded","false")}
-function aboutView(){const ab=S.about||ABOUT_DEF;open(`<div class="hd"><h2>من نحن</h2><button class="x" data-close aria-label="إغلاق">${I("x")}</button></div><div class="aboutc"><div class="mark big3">${LOGO}</div><b>دولار وسنت للموبايل</b><span>الموصل</span></div><p class="abt">${E(ab).replace(/\n/g,"<br>")}</p>
+function aboutView(){const ab=S.about||ABOUT_DEF;open(`<div class="hd"><h2>من نحن</h2><button class="x" data-close aria-label="إغلاق">${I("x")}</button></div><div class="aboutc"><div class="mark big3" style="padding:0;overflow:hidden;background:#fff"><img src="md-head.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top"></div><b>دولار وسنت للموبايل</b><span>الموصل</span></div><p class="abt">${E(ab).replace(/\n/g,"<br>")}</p>
  <h3>تواصل معنا</h3>${S.ph.map(x=>`<a class="line" href="tel:${E(x.n)}"><span class="t"><b>${E(x.l)}</b><span class="ltr">${E(x.n)}</span></span>${I("phone")}</a>`).join("")}<a class="line" href="#" data-chatgo><span class="t"><b>راسلنا من التطبيق</b><span>نرد عليك بالرسائل</span></span>${I("chat")}</a>
  <h3>التوصيل</h3><p class="hint">دلفري داخل الموصل ${fmt(S.fee.d)}، باقي المحافظات ${fmt(S.fee.w)}، والاستلام من المكتب ${S.fee.p?fmt(S.fee.p):"مجاني"}.</p>
  <button class="btn mt" id="shapp4">${I("share")}شارك التطبيق</button>`)}
