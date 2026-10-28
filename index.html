@@ -316,6 +316,14 @@ function mapsUpd(){if(!window.L)return mapsInit();MY.forEach(o=>{const M=MAPS[o.
 let GW=null,GLast=0;
 function driverGps(){const act=DORD.filter(o=>o.status=="onway");if(!act.length){if(GW!=null){navigator.geolocation.clearWatch(GW);GW=null}return}if(GW!=null||!navigator.geolocation)return;
  GW=navigator.geolocation.watchPosition(p=>{const now=Date.now();if(now-GLast<8000)return;GLast=now;const d={a:+p.coords.latitude.toFixed(6),o:+p.coords.longitude.toFixed(6),t:now};DORD.filter(o=>o.status=="onway").forEach(o=>API.driverLoc(o.id,d).catch(()=>{}))},()=>toast("شغّل الموقع (GPS) حتى الزبون يشوفك على الخريطة"),{enableHighAccuracy:true,maximumAge:5000,timeout:20000})}
+function deflate(){try{const A=ACX||(ACX=new(window.AudioContext||window.webkitAudioContext)());if(A.state=="suspended")A.resume();const t=A.currentTime+.02,D=.75,o=A.createOscillator(),f=A.createBiquadFilter(),g=A.createGain(),l=A.createOscillator(),lg=A.createGain();
+o.type="sawtooth";o.frequency.setValueAtTime(880,t);o.frequency.exponentialRampToValueAtTime(420,t+D*.35);o.frequency.exponentialRampToValueAtTime(110,t+D);
+l.type="sine";l.frequency.setValueAtTime(28,t);l.frequency.linearRampToValueAtTime(14,t+D);lg.gain.value=60;l.connect(lg);lg.connect(o.frequency);
+f.type="bandpass";f.Q.value=3;f.frequency.setValueAtTime(1400,t);f.frequency.exponentialRampToValueAtTime(350,t+D);
+g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.28,t+.04);g.gain.setValueAtTime(.28,t+D*.6);g.gain.exponentialRampToValueAtTime(.001,t+D);
+o.connect(f);f.connect(g);g.connect(A.destination);
+const n=A.createBufferSource(),b=A.createBuffer(1,A.sampleRate*D|0,A.sampleRate),c=b.getChannelData(0);for(let i=0;i<c.length;i++)c[i]=Math.random()*2-1;n.buffer=b;const nf=A.createBiquadFilter();nf.type="highpass";nf.frequency.value=2500;const ng=A.createGain();ng.gain.setValueAtTime(.12,t);ng.gain.exponentialRampToValueAtTime(.001,t+D*.8);n.connect(nf);nf.connect(ng);ng.connect(A.destination);
+o.start(t);l.start(t);n.start(t);o.stop(t+D+.05);l.stop(t+D+.05);n.stop(t+D)}catch(e){}}
 function chime(big){try{const A=ACX||(ACX=new(window.AudioContext||window.webkitAudioContext)());if(A.state=="suspended")A.resume();const t=A.currentTime+.03,m=A.createGain();m.gain.value=big?.6:.5;m.connect(A.destination);
  const d=A.createDelay(),f=A.createGain(),w=A.createGain();d.delayTime.value=.15;f.gain.value=.35;w.gain.value=.3;m.connect(d);d.connect(f);f.connect(d);d.connect(w);w.connect(A.destination);
  const bell=(fr,at,du,v)=>{const c=A.createOscillator(),mo=A.createOscillator(),mg=A.createGain(),g=A.createGain();c.frequency.value=fr;mo.frequency.value=fr*3.5;mg.gain.setValueAtTime(fr*1.4,t+at);mg.gain.exponentialRampToValueAtTime(fr*.04,t+at+du*.6);mo.connect(mg);mg.connect(c.frequency);g.gain.setValueAtTime(0,t+at);g.gain.linearRampToValueAtTime(v,t+at+.005);g.gain.exponentialRampToValueAtTime(.0005,t+at+du);c.connect(g);g.connect(m);c.start(t+at);mo.start(t+at);c.stop(t+at+du+.05);mo.stop(t+at+du+.05)};
@@ -552,7 +560,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest("button,[da
  else if(false)share("MD MOBILE","تصفّح واطلب ملحقات الموبايل من MD MOBILE، الموصل",appUrl());
  else if(d.copy!==undefined){try{await navigator.clipboard.writeText(d.copy);toast("تم نسخ الرابط")}catch(x){prompt("انسخ الرابط:",d.copy)}}
  else if(d.again!==undefined){let n=0;try{JSON.parse(d.i).forEach(([id,qq])=>{const p=G(id);if(p&&!p.o&&p.p>0){cart[id]=(cart[id]||0)+qq;n++}})}catch(x){}sv();badge(true);if(n){setTab("cart");toast("انضافت المنتجات المتوفرة للسلة")}else toast("هذي المنتجات غير متوفرة حالياً")}
- else if(d.ask){const p=G(d.ask);if(p)askSheet(p.n)}else if(d.inc)inc(d.inc,1);else if(d.dec)inc(d.dec,-1);
+ else if(d.ask){const p=G(d.ask);if(p)askSheet(p.n)}else if(d.inc)inc(d.inc,1);else if(d.dec){deflate();inc(d.dec,-1)}
  else if(d.close!==undefined)close();
  else if(d.dm){dm=d.dm;cartView()}else if(d.dr){dr=+d.dr;cartView()}
  else if(t.id=="loc"){navigator.geolocation?navigator.geolocation.getCurrentPosition(g=>{cu.l="https://maps.google.com/?q="+g.coords.latitude+","+g.coords.longitude;cartView()},()=>er("ما قدرنا نحدد موقعك. اكتب العنوان بدلاً منه.")):er("جهازك ما يدعم تحديد الموقع.")}
@@ -592,6 +600,15 @@ async function install(){if(dp){dp.prompt();await dp.userChoice;dp=null;return}
  const st=inapp?["انسخ رابط التطبيق","افتح متصفح "+(ios?"Safari":"Chrome")+" نفسه والصق الرابط","بعدها اضغط زر التثبيت مرة ثانية"]:ios?["اضغط زر المشاركة بأسفل Safari","اختر «إضافة إلى الشاشة الرئيسية»","اضغط «إضافة»"]:["اضغط النقاط ⋮ بأعلى Chrome","اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»","اضغط «تثبيت»"];
  open(`<div class="hd"><h2>ثبّت التطبيق</h2><button class="x" data-close aria-label="إغلاق">${I("x")}</button></div>${inapp?'<p class="hint">أنت فاتح التطبيق من داخل تطبيق ثاني، والتثبيت يشتغل بس من المتصفح.</p>':""}<ol class="steps">${st.map(x=>`<li>${x}</li>`).join("")}</ol><button class="btn mt" data-close>تمام</button>`)}
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+(function(){let lastBack=0;const guard=()=>{try{history.pushState({g:1},"",location.href)}catch(e){}};
+if(!(history.state&&history.state.g))guard();
+window.addEventListener("popstate",()=>{const dw=document.getElementById("dw"),sh=document.getElementById("sh");
+ if(dw&&dw.classList.contains("on")){closeDrawer();guard();return}
+ if(sh&&sh.classList.contains("on")){close();guard();return}
+ if(tab!="home"){setTab("home");guard();return}
+ if(sec){sec="";cat="all";q="";brd="";home();window.scrollTo(0,0);guard();return}
+ const now=Date.now();if(now-lastBack<2000){history.back();return}
+ lastBack=now;toast("اضغط رجوع مرة ثانية للخروج");guard()})})();
 
 function mdBr(){const r=document.getElementById("mbr2");if(!r)return;const ORD=["Apple","Samsung","Xiaomi","Huawei","Honor","Anker","Soundcore","UGREEN","Baseus","Oraimo","JBL","Philips","Momax","Mcdodo","Infinix","Tecno","Realme","Nokia","Joyroom","Hoco","Remax","Vision","Moxom","Porodo","Siwar","Gerlax","Ven-Dens","Erange","BOXU","Dadu"],cnt={};PR.filter(p=>vis(p)&&p.br&&p.br!="عام").forEach(p=>cnt[p.br]=(cnt[p.br]||0)+1);const L=[...ORD.filter(b=>cnt[b]),...Object.keys(cnt).filter(b=>!ORD.includes(b)).sort((a,b)=>cnt[b]-cnt[a])];r.innerHTML=L.map(b=>{const t=(typeof BT!="undefined"&&BT[b])||[b,"#1E3A8A","#fff"];return`<button data-mbr="${E(b)}" style="--bc:${t[1]};--tc:${t[2]}"><b>${E(t[0])}</b></button>`}).join("")}
 function mdNew(){mdBr();const r=document.getElementById("mdnew");if(!r)return;const L=PR.filter(p=>vis(p)&&p.c!="m"&&p.img&&!String(p.img).startsWith("data:")).slice(0,10);r.innerHTML=L.length?L.map(p=>`<button class="mini" data-open="${E(p.id)}"><img alt="" loading="lazy" src="${E(p.img)}"><b>${E(p.n)}</b><span>${money(p.p)}</span></button>`).join(""):'<div class="skel" style="height:150px;width:100%"></div>'}
