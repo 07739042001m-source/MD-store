@@ -1,0 +1,114 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>كود الوسيط</title><meta name="robots" content="noindex">
+<style>body{font-family:system-ui;background:#0b1630;color:#fff;margin:0;padding:16px}button{width:100%;padding:18px;font-size:20px;border:0;border-radius:14px;background:#1e6bff;color:#fff;font-weight:700}textarea{width:100%;height:55vh;margin-top:14px;direction:ltr;font:12px monospace;border-radius:10px;box-sizing:border-box}p{font-size:17px}</style></head><body>
+<p>دوس الزر، وبعدين الصقه بمحرر Cloudflare بدل كل الموجود 👇</p>
+<button id="b">📋 انسخ الكود</button>
+<textarea id="t" readonly>// MD MOBILE &lt;-&gt; Al-Waseet bridge (MD only). Secrets: WASEET_USER, WASEET_PASS
+const API = &quot;https://api.alwaseet-iq.net/v1/merchant&quot;;
+const ORIGINS = [&quot;https://07739042001m-source.github.io&quot;, &quot;http://localhost:8766&quot;];
+const OWNER = &quot;07739042001m@gmail.com&quot;;
+const FB_KEY = &quot;AIzaSyDPGfxaYuQX73FyolrubNVKda1DAsUJQYI&quot;;
+const FB_PROJ = &quot;md-store-30ff6&quot;;
+let TOK = null, TOK_AT = 0, CACHE = {};
+
+function cors(req) {
+  const o = req.headers.get(&quot;Origin&quot;) || &quot;&quot;;
+  return {
+    &quot;Access-Control-Allow-Origin&quot;: ORIGINS.includes(o) ? o : ORIGINS[0],
+    &quot;Access-Control-Allow-Methods&quot;: &quot;GET,POST,OPTIONS&quot;,
+    &quot;Access-Control-Allow-Headers&quot;: &quot;Content-Type,Authorization&quot;,
+    &quot;Content-Type&quot;: &quot;application/json; charset=utf-8&quot;,
+  };
+}
+const J = (req, x, s = 200) =&gt; new Response(JSON.stringify(x), { status: s, headers: cors(req) });
+
+async function login(env, force) {
+  if (TOK &amp;&amp; !force &amp;&amp; Date.now() - TOK_AT &lt; 50 * 60 * 1000) return TOK;
+  const f = new FormData();
+  f.append(&quot;username&quot;, env.WASEET_USER || &quot;&quot;);
+  f.append(&quot;password&quot;, env.WASEET_PASS || &quot;&quot;);
+  const r = await fetch(API + &quot;/login&quot;, { method: &quot;POST&quot;, body: f });
+  const d = await r.json().catch(() =&gt; ({}));
+  if (!d.status || !d.data || !d.data.token) throw new Error((d.msg || &quot;login failed&quot;) + &quot;&quot;);
+  TOK = d.data.token; TOK_AT = Date.now();
+  return TOK;
+}
+
+async function call(env, path, opt = {}, retry = true) {
+  const t = await login(env);
+  const sep = path.includes(&quot;?&quot;) ? &quot;&amp;&quot; : &quot;?&quot;;
+  const r = await fetch(API + path + sep + &quot;token=&quot; + encodeURIComponent(t), opt);
+  const d = await r.json().catch(() =&gt; ({ status: false, msg: &quot;bad response &quot; + r.status }));
+  if (!d.status &amp;&amp; retry &amp;&amp; /token|auth|login/i.test(d.msg || &quot;&quot;)) { await login(env, true); return call(env, path, opt, false); }
+  return d;
+}
+
+async function cached(env, key, path) {
+  const c = CACHE[key];
+  if (c &amp;&amp; Date.now() - c.at &lt; 6 * 3600 * 1000) return c.d;
+  const d = await call(env, path);
+  if (d.status) CACHE[key] = { at: Date.now(), d };
+  return d;
+}
+
+// staff check: Firebase ID token -&gt; email -&gt; owner or admins/{email}
+async function staff(req) {
+  const h = req.headers.get(&quot;Authorization&quot;) || &quot;&quot;;
+  const idt = h.replace(/^Bearer\s+/i, &quot;&quot;);
+  if (!idt) return null;
+  const r = await fetch(&quot;https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=&quot; + FB_KEY, {
+    method: &quot;POST&quot;, headers: { &quot;Content-Type&quot;: &quot;application/json&quot; }, body: JSON.stringify({ idToken: idt }),
+  });
+  const d = await r.json().catch(() =&gt; ({}));
+  const e = d.users &amp;&amp; d.users[0] &amp;&amp; d.users[0].email;
+  if (!e) return null;
+  if (e === OWNER) return e;
+  const a = await fetch(`https://firestore.googleapis.com/v1/projects/${FB_PROJ}/databases/(default)/documents/admins/${encodeURIComponent(e)}`, {
+    headers: { Authorization: &quot;Bearer &quot; + idt },
+  });
+  return a.ok ? e : null;
+}
+
+export default {
+  async fetch(req, env) {
+    if (req.method === &quot;OPTIONS&quot;) return new Response(null, { headers: cors(req) });
+    const u = new URL(req.url);
+    try {
+      if (u.pathname === &quot;/check&quot;) {
+        await login(env, true);
+        return J(req, { ok: true });
+      }
+      if (u.pathname === &quot;/cities&quot;) return J(req, await cached(env, &quot;c&quot;, &quot;/citys&quot;));
+      if (u.pathname === &quot;/regions&quot;) {
+        const id = parseInt(u.searchParams.get(&quot;city_id&quot;), 10);
+        if (!id) return J(req, { status: false, msg: &quot;city_id&quot; }, 400);
+        return J(req, await cached(env, &quot;r&quot; + id, &quot;/regions?city_id=&quot; + id));
+      }
+      if (u.pathname === &quot;/sizes&quot;) return J(req, await cached(env, &quot;s&quot;, &quot;/package-sizes&quot;));
+
+      // staff-only below
+      const who = await staff(req);
+      if (!who) return J(req, { status: false, msg: &quot;غير مصرح&quot; }, 403);
+
+      if (u.pathname === &quot;/create&quot; &amp;&amp; req.method === &quot;POST&quot;) {
+        const b = await req.json();
+        const need = [&quot;client_name&quot;, &quot;client_mobile&quot;, &quot;city_id&quot;, &quot;region_id&quot;, &quot;location&quot;, &quot;type_name&quot;, &quot;items_number&quot;, &quot;price&quot;, &quot;package_size&quot;];
+        for (const k of need) if (b[k] === undefined || b[k] === &quot;&quot;) return J(req, { status: false, msg: &quot;ناقص: &quot; + k }, 400);
+        const f = new FormData();
+        for (const k of need.concat([&quot;client_mobile2&quot;, &quot;merchant_notes&quot;])) if (b[k] !== undefined &amp;&amp; b[k] !== &quot;&quot;) f.append(k, String(b[k]));
+        f.append(&quot;replacement&quot;, b.replacement ? &quot;1&quot; : &quot;0&quot;);
+        return J(req, await call(env, &quot;/create-order&quot;, { method: &quot;POST&quot;, body: f }, true));
+      }
+      if (u.pathname === &quot;/orders&quot;) {
+        const ids = (u.searchParams.get(&quot;ids&quot;) || &quot;&quot;).split(&quot;,&quot;).filter(Boolean).slice(0, 25).join(&quot;,&quot;);
+        if (!ids) return J(req, await call(env, &quot;/merchant-orders&quot;));
+        const f = new FormData(); f.append(&quot;ids&quot;, ids);
+        return J(req, await call(env, &quot;/get-orders-by-ids-bulk&quot;, { method: &quot;POST&quot;, body: f }));
+      }
+      return J(req, { status: false, msg: &quot;not found&quot; }, 404);
+    } catch (e) {
+      return J(req, { status: false, msg: String(e.message || e) }, 500);
+    }
+  },
+};
+</textarea>
+<script>b.onclick=async()=>{t.select();try{await navigator.clipboard.writeText(t.value)}catch(e){document.execCommand("copy")}b.textContent="✅ انسخ"}</script></body></html>
