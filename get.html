@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>حمّل تطبيق MD MOBILE</title>
+<meta name="description" content="حمّل تطبيق MD MOBILE للموبايل: اكسسوارات وصيانة وتوصيل داخل الموصل.">
+<meta name="theme-color" content="#1D4ED8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="md-192.png">
+<link rel="apple-touch-icon" href="md-192.png">
+<meta property="og:title" content="تطبيق MD MOBILE">
+<meta property="og:description" content="اكسسوارات أصلية، صيانة وقطع غيار، وتوصيل لباب البيت.">
+<meta property="og:image" content="md-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#1D4ED8;--deep:#1E3A8A;--ink:#0F172A;--muted:#5B6475;--paper:#fff;--bg:#F4F7FD;--line:#DCE5F5;--fd:"Cairo",system-ui,sans-serif;--fb:"Tajawal",system-ui,sans-serif}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--fb);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:520px;margin:0 auto;padding-block:28px 40px;display:grid;gap:22px}
+.hero{background:linear-gradient(150deg,var(--red),var(--deep));color:#fff;border-radius:28px;padding:28px 22px 26px;text-align:center;position:relative;overflow:hidden;box-shadow:0 14px 34px #1d4ed844}
+.hero::after{content:"";position:absolute;inset:auto -60px -80px auto;width:220px;height:220px;border-radius:50%;background:#ffffff14}
+.ic{width:96px;height:96px;border-radius:24px;background:#fff;display:block;margin:0 auto 14px;box-shadow:0 10px 24px #0003}
+h1{font-family:var(--fd);font-weight:900;font-size:26px;margin:0 0 6px}
+.hero p{margin:0 0 20px;opacity:.92;font-size:15.5px;line-height:1.7}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:18px;padding:16px;font:800 17px var(--fd);cursor:pointer;text-decoration:none}
+.btn.w{background:#fff;color:var(--red);position:relative;z-index:1}
+.btn.o{background:transparent;color:#fff;border:2px solid #ffffff88;margin-top:10px;position:relative;z-index:1}
+.btn svg{width:22px;height:22px}
+.ok{display:none;background:#fff;color:#0E7A4B;border-radius:16px;padding:12px;font-weight:700;margin-top:10px;position:relative;z-index:1}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:18px}
+.card h2{font-family:var(--fd);font-size:18px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+ol{margin:0;padding:0 20px 0 0;display:grid;gap:8px;line-height:1.7;font-size:15px}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs button{flex:1;border:1.5px solid var(--line);background:var(--bg);border-radius:14px;padding:10px;font:700 15px var(--fb);color:var(--ink);cursor:pointer}
+.tabs button.on{border-color:var(--red);background:#fff;color:var(--red)}
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.feat div{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px;font-size:14px;line-height:1.55}
+.feat b{display:block;font-family:var(--fd);font-size:15.5px;margin-bottom:2px}
+.share{display:flex;gap:10px}
+.share a,.share button{flex:1;text-align:center;border-radius:14px;padding:12px;font:700 14.5px var(--fb);text-decoration:none;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.share a.wa{background:#25D366;border-color:#25D366;color:#fff}
+.lnk{direction:ltr;font-size:13px;color:var(--muted);text-align:center;word-break:break-all}
+footer{text-align:center;color:var(--muted);font-size:13.5px}
+button:focus-visible,a:focus-visible{outline:3px solid #ffbf00;outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<section class="hero">
+ <img class="ic" src="md-192.png" alt="شعار MD MOBILE">
+ <h1>تطبيق MD MOBILE</h1>
+ <p>اكسسوارات أصلية بأسعار مناسبة، صيانة وقطع غيار، وتوصيل لباب البيت.</p>
+ <button class="btn w" id="inst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>حمّل التطبيق مجاناً</button>
+ <p id="ah" hidden style="position:relative;z-index:1;margin:12px 0 0;font-size:14px;opacity:.95">افتح الصفحة من Chrome، ودوس النقاط الثلاث ⋮ فوگ ثم «تثبيت التطبيق»</p>
+ <p id="pp" hidden style="position:relative;z-index:1;margin:12px 0 0;font-size:14px;line-height:1.7;background:#ffffff22;border-radius:14px;padding:10px">بعد التحميل افتح الملف ودوس «تثبيت». إذا طلعت رسالة «تم حظر التطبيق»، دوس «مزيد من التفاصيل» ثم «التثبيت على أي حال».</p>
+ <div class="ok" id="ok">تم التثبيت ✓ تلگى أيقونة MD MOBILE على شاشة موبايلك</div>
+ <p id="ih" style="position:relative;z-index:1;margin:12px 0 0;font-size:14px;opacity:.9" hidden>بالآيفون: من Safari دوس زر المشاركة ⬆︎ ثم «إضافة إلى الشاشة الرئيسية»</p>
+</section>
+
+<h2 style="font-family:var(--fd);margin:4px 0 -8px;font-size:20px">مميزات التطبيق</h2>
+<section class="feat">
+ <div><b>اكسسوارات</b>شواحن، كيبلات، سماعات وباور بانك من انكر، اورايمو، ابل وغيرها</div>
+ <div><b>صيانة</b>قطع غيار لكل الأجهزة، اسأل عن السعر ونرد عليك</div>
+ <div><b>توصيل</b>2,000 داخل الموصل و5,000 لباقي المحافظات</div>
+ <div><b>دفع سهل</b>الدفع نقداً عند الاستلام</div>
+</section>
+
+<footer>MD MOBILE · الموصل<br>07719805620</footer>
+</main>
+<script>
+const APK="";
+const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);if(ios)document.getElementById("ih").hidden=false;
+let dp=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dp=e});
+window.addEventListener("appinstalled",()=>{document.getElementById("ok").style.display="block"});
+document.getElementById("inst").onclick=async()=>{if(APK&&!ios){location.href=APK;document.getElementById("pp").hidden=false;return}if(dp){dp.prompt();const r=await dp.userChoice;dp=null;if(r.outcome=="accepted")document.getElementById("ok").style.display="block"}else if(ios){document.getElementById("ih").hidden=false}else{document.getElementById("ah").hidden=false}};
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
