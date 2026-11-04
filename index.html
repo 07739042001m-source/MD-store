@@ -138,7 +138,7 @@ const ST={new:"جديد",accepted:"قيد التجهيز",onway:"بالطريق"
 const DL={driver:"دلفري",wasit:"الوسيط",pickup:"استلام من المكتب",parts:"قطع غيار"};
 const FACETS='<svg class="facets" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 18 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.5" stroke-width="2.2"/><path d="M52 18 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.35" stroke-width="2.2"/><path d="M41 37 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="2.2"/><path d="M63 37 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.3" stroke-width="2.2"/><path d="M52 56 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.4" stroke-width="2.2"/><path d="M74 56 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.25" stroke-width="2.2"/><path d="M30 56 l10 6 v12 l-10 6 l-10 -6 v-12z" fill="none" stroke="#fff" stroke-opacity="0.2" stroke-width="2.2"/></svg>';
 
-let S={of:{on:0,a:20,b:30},about:"",ph:[{l:"الأجهزة",n:"07719805620"},{l:"الصيانة",n:"07719805620"}],wa:"9647719805620",dr:[{n:"المندوب",p:"9647719805620"}],fee:{d:1000,w:5000,p:0}};
+let S={of:{on:0,a:20,b:30},about:"",ph:[{l:"الأجهزة",n:"07719805620"},{l:"الصيانة",n:"07719805620"}],wa:"9647719805620",dr:[{n:"المندوب",p:"9647719805620"}],fee:{d:2000,w:5000,p:0}};
 let PR=[],loaded=false,MY=[],OWN=false,ROLE="",cat="all",q="",tab="home",cart={},dm="d",dr=0,cu={n:"",p:"",a:"",l:""},AC=null,ed=null,eimg="",arm=null,FAV=new Set(),srt="def",atab="p",STK={},ORD=[],stf="all",MV=null;
 try{cart=JSON.parse(localStorage.getItem("md_cart")||"{}")}catch(e){}
 try{AC=JSON.parse(localStorage.getItem("md_acct")||"null")}catch(e){AC=null}
@@ -332,7 +332,7 @@ if(!sec){if(!v.querySelector(".secs")){v.dataset.sec="";const nd=PB.reduce((a,b)
   const fxB=PB.slice(0,8);
   v.innerHTML=`<div class="secs"></div><div class="mhi"><img class="mmas" src="hero-full.png" alt="" aria-hidden="true"><span>${nm?"هلا "+E(nm)+" 👋":"هلا بيك 👋"}</span><b>شتحتاج اليوم؟</b></div>
   <form class="msr" id="msr"><span>${I("search")}</span><input id="mq" type="search" placeholder="دوّر على شاحن، كيبل، سماعة…" autocomplete="off"><button type="submit" aria-label="بحث">${I("chev","flip")}</button></form>
-  <div class="promo" id="promo"><div class="pc p1"><small>عرض دائم</small><b>توصيل مجاني 🚚</b><span>للطلبات فوق 15,000 د.ع · الأيسر بـ 1,000 فقط</span></div><div class="pc p2"><small>صيانة</small><b>قطع غيار لـ ${num(nd)} جهاز</b><span>اسأل عن السعر ونرد عليك بالواتساب</span></div><div class="pc p3"><small>اكسسوارات</small><b>مضمونة وبأسعار حلوة</b><span>انكر، اورايمو، ابل وغيرها</span></div></div>
+  <div class="promo" id="promo"><div class="pc p1"><small>عرض دائم</small><b>توصيل مجاني 🚚</b><span>للطلبات فوق 15,000 د.ع · الأيمن والأيسر بـ 2,000</span></div><div class="pc p2"><small>صيانة</small><b>قطع غيار لـ ${num(nd)} جهاز</b><span>اسأل عن السعر ونرد عليك بالواتساب</span></div><div class="pc p3"><small>اكسسوارات</small><b>مضمونة وبأسعار حلوة</b><span>انكر، اورايمو، ابل وغيرها</span></div></div>
   <div class="dots" id="dots"><i class="on"></i><i></i><i></i></div>
   <div class="mh"><b>تسوّق حسب القسم</b></div><div class="mcat" id="mcat"></div>
   <div class="srv"><button data-sec="acc"><i>${I("c")}</i><span><b>الاكسسوارات</b><small>شواحن، كيبلات، سماعات وباور بانك</small></span>${I("chev")}</button><button data-sec="fix"><i>${I("tool")}</i><span><b>الصيانة وقطع الغيار</b><small>${num(PALL.length)} قطعة لكل الأجهزة</small></span>${I("chev")}</button></div>
@@ -393,7 +393,7 @@ function cartView(){
  const D=disc(),t=D.t-D.d,fee=(dm=="d"&&t>=MDFREE)?0:S.fee[dm],fz=n=>n?fmt(n):"مجاني",nx=offPct(mxq()+1);
  v.innerHTML=`<div style="padding:8px 16px 20px"><div class="sec" style="padding:8px 0"><h2>سلتك</h2><span>${sum()[0]} قطعة</span></div>
  ${ids.map(id=>{const p=G(id);return`<div class="line">${p.img?`<img alt="" src="${E(p.img)}">`:""}<div class="t"><b>${E(p.n)}</b>${lnd(id)?`<span class="pdx"><s>${fmt(p.p*cart[id])}</s><em>${fmt(p.p*cart[id]-lnd(id))}</em></span>`:`<span>${fmt(p.p*cart[id])}</span>`}</div><div class="step"><button data-inc="${E(id)}" aria-label="زيادة">${I("plus")}</button><b>${cart[id]}</b><button data-dec="${E(id)}" aria-label="تقليل">${I("minus")}</button></div></div>`}).join("")}
- <h3>طريقة الاستلام</h3><div class="seg">${[["d","الساحل الأيسر"],["w","باقي المحافظات"],["p","من المكتب"]].map(([k,l])=>`<button class="opt${dm==k?" on":""}" data-dm="${k}">${l}<small>${fz(S.fee[k])}</small></button>`).join("")}</div>
+ <h3>طريقة الاستلام</h3><div class="seg">${[["d","الأيمن والأيسر"],["w","باقي المحافظات"],["p","من المكتب"]].map(([k,l])=>`<button class="opt${dm==k?" on":""}" data-dm="${k}">${l}<small>${fz(S.fee[k])}</small></button>`).join("")}</div>
  ${dm=="d"?`<div class="chips">${S.dr.map((d,i)=>`<button class="chip${dr==i?" on":""}" data-dr="${i}">المندوب ${E(d.n)}</button>`).join("")}</div>`:""}
  <h3>معلومات الطلب</h3>
  <label class="f">الاسم<input class="fld" id="cn" value="${E(cu.n)}" autocomplete="name"></label>
@@ -403,7 +403,7 @@ function cartView(){
  <p class="err" id="er"></p>
  <button class="btn" id="send">${I("send")}${PMX=="k"?`ادفع ${fmt(t+fee)} وأكمل الطلب`:dm=="d"?`أرسل الطلب للمندوب ${E(S.dr[dr].n)}`:"أرسل الطلب للمكتب"}</button>
  ${dm=="d"&&PMX!="k"?`<button class="btn ghost mt" id="send2">أرسل نسخة للمكتب</button>`:""}</div>`}
-function orderText(no){const D=disc(),t=D.t-D.d,fee=(dm=="d"&&t>=MDFREE)?0:S.fee[dm],fz=n=>n?fmt(n):"مجاني",dl={d:"دلفري الساحل الأيسر - الموصل (المندوب "+S.dr[dr].n+")",w:"توصيل للمحافظات (الوسيط)",p:"استلام من المكتب"}[dm];
+function orderText(no){const D=disc(),t=D.t-D.d,fee=(dm=="d"&&t>=MDFREE)?0:S.fee[dm],fz=n=>n?fmt(n):"مجاني",dl={d:"دلفري الموصل (الأيمن والأيسر) (المندوب "+S.dr[dr].n+")",w:"توصيل للمحافظات (الوسيط)",p:"استلام من المكتب"}[dm];
  return["طلب جديد - MD MOBILE"+(no?" #"+no:""),"","الاسم: "+cu.n,"الهاتف: "+cu.p,dm=="p"?null:"العنوان: "+cu.a,cu.l?"الموقع: "+cu.l:null,"التوصيل: "+dl,"الدفع: "+(PMX=="k"?"إلكتروني (ويل) — ينتظر التأكيد":"نقداً عند الاستلام"),"","المنتجات:",...Object.keys(cart).filter(G).map(id=>"• "+G(id).n+" × "+cart[id]+" = "+fmt(G(id).p*cart[id])),"","مجموع المنتجات: "+fmt(D.t),D.d?"خصم العرض (قطعتين أو أكثر من نفس المنتج): - "+fmt(D.d):null,"كلفة التوصيل: "+fz(fee),"الإجمالي: "+fmt(t+fee)].filter(x=>x!==null).join("\n")}
 let CDT=null;
 function send(to,keep){
@@ -528,7 +528,7 @@ function openDrawer(){drawer();$("#dw").classList.add("on");$("#dov").classList.
 function closeDrawer(){$("#dw").classList.remove("on");$("#dov").classList.remove("on");$("#dw").setAttribute("aria-hidden","true");$("#menu").setAttribute("aria-expanded","false")}
 function aboutView(){const ab=S.about||ABOUT_DEF;open(`<div class="hd"><h2>من نحن</h2><button class="x" data-close aria-label="إغلاق">${I("x")}</button></div><div class="aboutc"><div class="mark big3" style="padding:0;overflow:hidden;background:#fff"><img src="md-logo.png" alt="" style="width:100%;height:100%;object-fit:cover"></div><b>MD MOBILE</b><span>الموصل</span></div><p class="abt">${E(ab).replace(/\n/g,"<br>")}</p>
  <h3>تواصل معنا</h3>${S.ph.map(x=>`<a class="line" href="tel:${E(x.n)}"><span class="t"><b>${E(x.l)}</b><span class="ltr">${E(x.n)}</span></span>${I("phone")}</a>`).join("")}<a class="line" href="#" data-chatgo><span class="t"><b>راسلنا من التطبيق</b><span>نرد عليك بالرسائل</span></span>${I("chat")}</a>
- <h3>التوصيل</h3><p class="hint">دلفري الساحل الأيسر ${fmt(S.fee.d)} (مجاني فوق ${fmt(MDFREE)})، باقي المحافظات ${fmt(S.fee.w)}، والاستلام من المكتب ${S.fee.p?fmt(S.fee.p):"مجاني"}.</p>
+ <h3>التوصيل</h3><p class="hint">دلفري الأيمن والأيسر ${fmt(S.fee.d)} (مجاني فوق ${fmt(MDFREE)})، باقي المحافظات ${fmt(S.fee.w)}، والاستلام من المكتب ${S.fee.p?fmt(S.fee.p):"مجاني"}.</p>
  <button class="btn mt" id="shapp4">${I("share")}شارك التطبيق</button>`)}
 /* share */
 const appUrl=()=>location.origin+location.pathname;
@@ -615,7 +615,7 @@ document.addEventListener("keydown",e=>{if(e.key=="Escape"){close();closeDrawer(
 /* boot */
 shell();render();techView();
 API.onProducts(L=>{const first=!loaded;PR=mergeACC(L).map(p=>({...p,p:Math.round(p.p/375)*375})).map(p=>p.img&&/^(p\d+|products\/x\d+)\.jpg$/.test(p.img)?{...p,img:p.img+"?v=40"}:p);loaded=true;if(first){setTimeout(checkHash,0);setTimeout(payBack,600)}for(const id in cart)if(!okC(G(id)))delete cart[id];sv();if(tab=="home"){grid();mdNew()}else if(tab=="cart")cartView();badge();if(OWN&&atab=="p"&&$("#ad")&&$("#sh").classList.contains("on"))prodTab()});
-API.onSettings(x=>{S={tg:x.tg||"",tc:x.tc||"",of:{a:20,b:30,...(x.of||{}),on:0},np:x.np||"",nk:x.nk||"",cm:+x.cm||0,about:x.about||"",ph:(x.ph&&x.ph.length)?x.ph:S.ph,wa:x.wa||S.wa,dr:(x.dr&&x.dr.length>1)?x.dr:S.dr,fee:{...S.fee,...(x.fee||{}),d:1000,w:5000}};if(tab=="cart")cartView();offerBar()});
+API.onSettings(x=>{S={tg:x.tg||"",tc:x.tc||"",of:{a:20,b:30,...(x.of||{}),on:0},np:x.np||"",nk:x.nk||"",cm:+x.cm||0,about:x.about||"",ph:(x.ph&&x.ph.length)?x.ph:S.ph,wa:x.wa||S.wa,dr:(x.dr&&x.dr.length>1)?x.dr:S.dr,fee:{...S.fee,...(x.fee||{}),d:2000,w:5000}};if(tab=="cart")cartView();offerBar()});
 API.onUser(o=>{OWN=o=="o"||o=="a";ROLE=o||"";DRV=o=="d";if(DRV){driverStart();setTab("orders")}if(ROLE=="a"&&!"pkmo".includes(atab))atab="p";if(OWN){API.onNewOrders(announce);staffChats()}else myChat();if(OWN)API.onStock(m=>{STK=m;if(atab=="k"&&$("#ad")&&$("#sh").classList.contains("on"))stockTab()});$("#adm").hidden=!OWN;if(OWN||DRV)hideGate();else gate();if(tab=="me")meView();if(tab=="home")grid()});
 let MYS=null;API.onMyOrders(L=>{if(MYS)L.forEach(o=>{const p=MYS[o.id];if(p&&p!=o.status){const m={accepted:"طلبك قيد التجهيز 📦",onway:"طلبك بالطريق إليك 🛵",delivered:"تم توصيل طلبك ✓ شكراً إلك",cancelled:"تم إلغاء طلبك"}[o.status];if(m){chime(o.status=="delivered");try{navigator.vibrate&&navigator.vibrate([120,60,120])}catch(e){}toast(m)}}});MYS={};L.forEach(o=>MYS[o.id]=o.status);const sig=A=>JSON.stringify(A.map(o=>[o.id,o.status]));const same=sig(L)==sig(MY);MY=L;if(tab=="orders"){if(same&&document.querySelector("[data-map]"))mapsUpd();else ordersView()}});
 let dp=null;const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
