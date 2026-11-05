@@ -23,14 +23,21 @@ const J = (req, x, s = 200) =&gt; new Response(JSON.stringify(x), { status: s, h
 
 async function login(env, force) {
   if (TOK &amp;&amp; !force &amp;&amp; Date.now() - TOK_AT &lt; 50 * 60 * 1000) return TOK;
-  const f = new FormData();
-  f.append(&quot;username&quot;, env.WASEET_USER || &quot;&quot;);
-  f.append(&quot;password&quot;, env.WASEET_PASS || &quot;&quot;);
-  const r = await fetch(API + &quot;/login&quot;, { method: &quot;POST&quot;, body: f });
-  const d = await r.json().catch(() =&gt; ({}));
-  if (!d.status || !d.data || !d.data.token) throw new Error((d.msg || &quot;login failed&quot;) + &quot;&quot;);
-  TOK = d.data.token; TOK_AT = Date.now();
-  return TOK;
+  const u = (env.WASEET_USER || &quot;&quot;).trim(), p = (env.WASEET_PASS || &quot;&quot;).trim();
+  if (!u || !p) throw new Error(&quot;missing secrets: &quot; + (!u ? &quot;WASEET_USER &quot; : &quot;&quot;) + (!p ? &quot;WASEET_PASS&quot; : &quot;&quot;));
+  const tries = [];
+  const f = new FormData(); f.append(&quot;username&quot;, u); f.append(&quot;password&quot;, p);
+  tries.push({ body: f });
+  tries.push({ body: new URLSearchParams({ username: u, password: p }) });
+  let last = &quot;&quot;;
+  for (const t of tries) {
+    const r = await fetch(API + &quot;/login&quot;, { method: &quot;POST&quot;, body: t.body, headers: { Accept: &quot;application/json&quot;, &quot;User-Agent&quot;: &quot;MD-MOBILE/1.0&quot; } });
+    const txt = await r.text();
+    let d = {}; try { d = JSON.parse(txt); } catch (e) {}
+    if (d.status &amp;&amp; d.data &amp;&amp; d.data.token) { TOK = d.data.token; TOK_AT = Date.now(); return TOK; }
+    last = &quot;HTTP &quot; + r.status + &quot; &quot; + (d.msg || d.errNum || txt.replace(/\s+/g, &quot; &quot;).slice(0, 160));
+  }
+  throw new Error(&quot;login failed: &quot; + last);
 }
 
 async function call(env, path, opt = {}, retry = true) {
