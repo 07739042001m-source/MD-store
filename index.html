@@ -132,6 +132,7 @@ document.addEventListener("click",async e=>{if(!e.target.closest("#pushon"))retu
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-wcp]");if(!b)return;const o=(ORD||[]).find(x=>x.id==b.dataset.wcp);if(!o)return;const its=o.items||[],n=its.reduce((a,i)=>a+(+i.q||1),0);
  const t=["اسم الزبون: "+(o.name||""),"رقم الهاتف: "+(o.phone||""),"المحافظة: "+(o.gov||""),"المنطقة / أقرب نقطة دالة: "+(o.address||""),"نوع البضاعة: اكسسوارات موبايل ("+its.map(i=>i.n+" ×"+i.q).join("، ")+")","العدد: "+n,"المبلغ الكلي مع التوصيل: "+num(o.total)+" د.ع"].join("\n");
  try{await navigator.clipboard.writeText(t);toast("انسخت ✓ الصقها بتطبيق الوسيط")}catch(x){prompt("انسخ المعلومات:",t)}});
+document.addEventListener("keydown",e=>{if(e.key=="Enter"&&e.target&&e.target.matches&&e.target.matches('input[type=search],#pbq')&&!e.target.closest("form")){e.preventDefault();e.target.blur()}},true);
 async function pushInit(){if(!OWN)return;if(await pushSub(false))return;if(document.getElementById("pushb")||!window.Notification||Notification.permission=="denied")return;
  const b=document.createElement("div");b.id="pushb";b.className="pushb";b.innerHTML='<span>🔔 فعّل إشعارات الطلبات حتى يجيك صوت حتى لو التطبيق مسكّر</span><button type="button" data-pon>تفعيل</button><button type="button" data-poff aria-label="إغلاق">✕</button>';document.body.appendChild(b);
  b.addEventListener("click",async e=>{if(e.target.closest("[data-poff]")){b.remove();return}if(e.target.closest("[data-pon]")){const ok=await pushSub(true);b.remove();toast(ok?"تم ✓ راح يجيك إشعار بكل طلب جديد":"ما تفعّلت الإشعارات، اسمح بالإشعارات من إعدادات التطبيق")}})}
@@ -360,7 +361,7 @@ function home(){const v=$("#view"),fee=S.fee.d;
 if(!sec){if(!v.querySelector(".secs")){v.dataset.sec="";const nd=PB.reduce((a,b)=>a+b[2].length,0),nm=AC&&AC.n?AC.n.split(" ")[0]:"";
   const fxB=PB.slice(0,8);
   v.innerHTML=`<div class="secs"></div><div class="mhi"><img class="mmas" src="hero-full.png" alt="" aria-hidden="true"><span>${nm?"هلا "+E(nm)+" 👋":"هلا بيك 👋"}</span><b>شتحتاج اليوم؟</b></div>
-  <form class="msr" id="msr"><span>${I("search")}</span><input id="mq" type="search" placeholder="دوّر على شاحن، كيبل، سماعة…" autocomplete="off"><button type="submit" aria-label="بحث">${I("chev","flip")}</button></form>
+  <form class="msr" id="msr"><span>${I("search")}</span><input id="mq" type="search" enterkeyhint="search" placeholder="دوّر على شاحن، كيبل، سماعة…" autocomplete="off"><button type="submit" aria-label="بحث">${I("chev","flip")}</button></form>
   <div class="promo" id="promo"><div class="pc p1"><small>عرض دائم</small><b>توصيل مجاني 🚚</b><span>للطلبات فوق 15,000 د.ع · الأيمن والأيسر بـ 2,000</span></div><div class="pc p2"><small>صيانة</small><b>قطع غيار لـ ${num(nd)} جهاز</b><span>اسأل عن السعر ونرد عليك بالواتساب</span></div><div class="pc p3"><small>اكسسوارات</small><b>مضمونة وبأسعار حلوة</b><span>انكر، اورايمو، ابل وغيرها</span></div></div>
   <div class="dots" id="dots"><i class="on"></i><i></i><i></i></div>
   <div class="mh"><b>تسوّق حسب القسم</b></div><div class="mcat" id="mcat"></div>
@@ -372,7 +373,7 @@ if(!sec){if(!v.querySelector(".secs")){v.dataset.sec="";const nd=PB.reduce((a,b)
  if(sec=="fix")cat="m";else if(cat=="m")cat="all";
  if(!v.querySelector(".grid")||v.dataset.sec!=sec){v.dataset.sec=sec;const fx=sec=="fix";
   v.innerHTML=`<div class="sbar"><button class="chip" data-sec="">${I("chev","flip")}الأقسام</button><b>${fx?"الصيانة وقطع الغيار":"الاكسسوارات"}</b></div>
-  <label class="search">${I("search")}<input id="q" type="search" placeholder="${fx?"ابحث: شاشة A52، بطارية ايفون 11…":"ابحث: شاحن 30 واط، كيبل ايفون…"}" value="${E(q)}" autocomplete="off"></label>
+  <label class="search">${I("search")}<input id="q" type="search" enterkeyhint="search" placeholder="${fx?"ابحث: شاشة A52، بطارية ايفون 11…":"ابحث: شاحن 30 واط، كيبل ايفون…"}" value="${E(q)}" autocomplete="off"></label>
   ${fx?"":`<div class="cats" id="cats" role="tablist"></div><div class="brs" id="brs"></div>`}
   <div class="sec"><h2 id="sect"></h2><div class="sortw"><span id="cnt"></span>${fx?"":`<select id="sort" aria-label="ترتيب المنتجات"><option value="def">الترتيب</option><option value="low">الأرخص أولاً</option><option value="high">الأغلى أولاً</option><option value="new">الأحدث</option></select>`}</div></div><div class="grid" id="grid"></div>`;
   $("#q").addEventListener("input",e=>{q=e.target.value.trim().toLowerCase();grid()});const so=$("#sort");if(so){so.value=srt;so.addEventListener("change",e=>{srt=e.target.value;grid()})}}
@@ -675,7 +676,7 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-mbr],[data
  if(d.mcat){sec="acc";cat=d.mcat;msub=d.msub||"";q="";brd="";home();window.scrollTo(0,0)}
  else if(d.mbr){sec="acc";cat="all";q="";brd=d.mbr;home();window.scrollTo(0,0)}
  else if(d.mfx!==undefined){sec="fix";cat="m";q="";pbM="";pbB=+d.mfx;home();window.scrollTo(0,0)}});
-document.addEventListener("submit",e=>{if(e.target.id!="msr")return;e.preventDefault();const v=document.getElementById("mq").value.trim();sec="acc";msub="";cat="all";brd="";q=v.toLowerCase();home();const i=document.getElementById("q");if(i)i.value=v;grid();window.scrollTo(0,0)});
+document.addEventListener("submit",e=>{if(e.target.id!="msr")return;e.preventDefault();try{document.activeElement&&document.activeElement.blur()}catch(x){}const v=document.getElementById("mq").value.trim();sec="acc";msub="";cat="all";brd="";q=v.toLowerCase();home();const i=document.getElementById("q");if(i)i.value=v;grid();window.scrollTo(0,0)});
 (function(){let lastBack=0;const guard=()=>{try{history.pushState({g:1},"",location.href)}catch(e){}};
 if(!(history.state&&history.state.g))guard();
 window.addEventListener("popstate",()=>{const dw=document.getElementById("dw"),sh=document.getElementById("sh");
