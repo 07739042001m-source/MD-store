@@ -1,8 +1,9 @@
-const V="md-v42";
+const V="md-v43";
 self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(["./","./index.html","./manifest.webmanifest","./md-192.png","./md-512.png"])).catch(()=>{}).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V&&x.startsWith("md-")).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{const r=e.request;if(r.method!=="GET")return;const u=new URL(r.url);if(u.origin!==location.origin)return;
 if(u.pathname.includes("/products/")){e.respondWith(caches.match(r).then(m=>m||fetch(r).then(x=>{if(x.ok){const c=x.clone();caches.open(V).then(y=>y.put(r,c))}return x})));return}
 e.respondWith(fetch(u.href,{cache:"no-cache"}).then(x=>{if(x.ok){const c=x.clone();caches.open(V).then(y=>y.put(r,c))}return x}).catch(()=>caches.match(r).then(m=>m||caches.match("./index.html"))))});
-self.addEventListener("push",e=>{e.waitUntil(self.registration.showNotification("🛍️ طلب جديد — MD MOBILE",{body:"وصلك طلب جديد، اضغط حتى تشوفه",icon:"./md-192.png",badge:"./md-192.png",tag:"order-"+Date.now(),renotify:true,requireInteraction:true,vibrate:[300,120,300,120,500],data:{url:"./"}}))});
+self.addEventListener("push",e=>{e.waitUntil((async()=>{let m={t:"🛍️ طلب جديد — MD MOBILE",b:"وصلك طلب جديد، اضغط حتى تشوفه"};try{const s=await self.registration.pushManager.getSubscription();if(s){const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s.endpoint));const id=btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"").slice(0,32);const r=await fetch("https://md-push.07739042001m.workers.dev/msg?id="+id);if(r.ok){const x=await r.json();if(x&&x.t)m=x}}}catch(x){}
+ await self.registration.showNotification(m.t,{body:m.b,icon:"./md-192.png",badge:"./md-192.png",tag:"order",renotify:true,requireInteraction:true,silent:false,vibrate:[400,150,400,150,700],data:{url:"./"}})})())});
 self.addEventListener("notificationclick",e=>{e.notification.close();e.waitUntil(clients.matchAll({type:"window",includeUncontrolled:true}).then(L=>{for(const c of L){if("focus"in c)return c.focus()}return clients.openWindow("./")}))});

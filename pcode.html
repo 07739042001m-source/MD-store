@@ -61,17 +61,25 @@ async function isStaff(u) {
   if (u.email === OWNER) return true;
   return (await fsDoc(&quot;admins/&quot; + encodeURIComponent(u.email), u.idt)).ok;
 }
+async function roleOf(u) {
+  if (await isStaff(u)) return &quot;staff&quot;;
+  if (u &amp;&amp; u.email &amp;&amp; (await fsDoc(&quot;drivers/&quot; + encodeURIComponent(u.email), u.idt)).ok) return &quot;driver&quot;;
+  return null;
+}
 
-async function sendAll(env) {
+// send to subscriptions matching pick(sub); the text is stored so the service worker can fetch it (pushes carry no payload)
+async function sendTo(env, pick, msg) {
   const list = await env.PUSH.list({ prefix: &quot;s:&quot; });
   let ok = 0;
   for (const k of list.keys) {
     const s = await env.PUSH.get(k.name, &quot;json&quot;);
-    if (!s || !s.endpoint) continue;
+    if (!s || !s.endpoint || !pick(s)) continue;
+    const id = k.name.slice(2);
+    await env.PUSH.put(&quot;m:&quot; + id, JSON.stringify(msg), { expirationTtl: 86400 });
     try {
       const r = await fetch(s.endpoint, {
         method: &quot;POST&quot;,
-        headers: { TTL: &quot;600&quot;, Urgency: &quot;high&quot;, Authorization: await vapidAuth(env, s.endpoint), &quot;Content-Length&quot;: &quot;0&quot; },
+        headers: { TTL: &quot;86400&quot;, Urgency: &quot;high&quot;, Authorization: await vapidAuth(env, s.endpoint), &quot;Content-Length&quot;: &quot;0&quot; },
       });
       if (r.status === 404 || r.status === 410) await env.PUSH.delete(k.name);
       else if (r.ok) ok++;
@@ -79,9 +87,11 @@ async function sendAll(env) {
   }
   return ok;
 }
+const STAFF_MSG = { t: &quot;🛍️ طلب جديد — MD MOBILE&quot;, b: &quot;وصلك طلب جديد، اضغط حتى تشوفه&quot; };
+const DRV_MSG = { t: &quot;🛵 طلب توصيل جديد — MD MOBILE&quot;, b: &quot;عندك طلب توصيل جديد، اضغط حتى تشوف العنوان&quot; };
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     if (req.method === &quot;OPTIONS&quot;) return new Response(null, { headers: cors(req) });
     const path = new URL(req.url).pathname;
     try {
@@ -93,11 +103,12 @@ export default {
 
       if (path === &quot;/sub&quot; &amp;&amp; req.method === &quot;POST&quot;) {
         const u = await who(req);
-        if (!(await isStaff(u))) return J(req, { ok: false, msg: &quot;staff only&quot; }, 403);
+        const role = await roleOf(u);
+        if (!role) return J(req, { ok: false, msg: &quot;staff or driver only&quot; }, 403);
         const sub = await req.json();
         if (!sub || !/^https:\/\//.test(sub.endpoint || &quot;&quot;)) return J(req, { ok: false }, 400);
         const id = b64u(await crypto.subtle.digest(&quot;SHA-256&quot;, enc(sub.endpoint))).slice(0, 32);
-        await env.PUSH.put(&quot;s:&quot; + id, JSON.stringify({ endpoint: sub.endpoint, email: u.email, at: Date.now() }));
+        await env.PUSH.put(&quot;s:&quot; + id, JSON.stringify({ endpoint: sub.endpoint, email: u.email, role, at: Date.now() }));
         return J(req, { ok: true });
       }
 
@@ -115,13 +126,27 @@ export default {
         const ct = Date.parse((f.createdAt &amp;&amp; f.createdAt.timestampValue) || d.createTime || 0);
         if (!ct || Date.now() - ct &gt; 15 * 60 * 1000) return J(req, { ok: false, msg: &quot;old&quot; }, 400);
         await env.PUSH.put(&quot;p:&quot; + oid, &quot;1&quot;, { expirationTtl: 86400 });
-        return J(req, { ok: true, sent: await sendAll(env) });
+        const de = ((f.de &amp;&amp; f.de.stringValue) || &quot;&quot;).toLowerCase();
+        const sent = await sendTo(env, (s) =&gt; s.role !== &quot;driver&quot;, STAFF_MSG);
+        let dsent = 0;
+        if (de) {
+          const isD = (s) =&gt; s.role === &quot;driver&quot; &amp;&amp; s.email === de;
+          dsent = await sendTo(env, isD, DRV_MSG);
+          // ring the driver once more after ~25 seconds
+          ctx.waitUntil(new Promise((r) =&gt; setTimeout(r, 25000)).then(() =&gt; sendTo(env, isD, { ...DRV_MSG, t: &quot;🔔 تذكير: &quot; + DRV_MSG.t })));
+        }
+        return J(req, { ok: true, sent, dsent });
       }
 
       if (path === &quot;/test&quot; &amp;&amp; req.method === &quot;POST&quot;) {
         const u = await who(req);
-        if (!(await isStaff(u))) return J(req, { ok: false }, 403);
-        return J(req, { ok: true, sent: await sendAll(env) });
+        if (!(await roleOf(u))) return J(req, { ok: false }, 403);
+        return J(req, { ok: true, sent: await sendTo(env, (s) =&gt; s.email === u.email, { t: &quot;✅ تجربة إشعار — MD MOBILE&quot;, b: &quot;الإشعارات شغالة، راح يجيك تنبيه بكل طلب&quot; }) });
+      }
+      if (path === &quot;/msg&quot;) {
+        const id = new URL(req.url).searchParams.get(&quot;id&quot;) || &quot;&quot;;
+        const m = await env.PUSH.get(&quot;m:&quot; + id, &quot;json&quot;);
+        return J(req, m || STAFF_MSG);
       }
       return J(req, { ok: false, msg: &quot;not found&quot; }, 404);
     } catch (e) {
