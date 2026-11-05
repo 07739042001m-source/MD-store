@@ -1,0 +1,133 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>كود إشعارات MD</title><meta name="robots" content="noindex">
+<style>body{font-family:system-ui;background:#0b1630;color:#fff;margin:0;padding:16px}button{width:100%;padding:18px;font-size:20px;border:0;border-radius:14px;background:#1e6bff;color:#fff;font-weight:700}textarea{width:100%;height:55vh;margin-top:14px;direction:ltr;font:12px monospace;border-radius:10px;box-sizing:border-box}p{font-size:17px}</style></head><body>
+<p>دوس الزر، وبعدين الصقه بمحرر Cloudflare بدل كل الموجود 👇</p>
+<button id="b">📋 انسخ الكود</button>
+<textarea id="t" readonly>// Order push notifications for MD MOBILE (works when the app is closed).
+// Needs one KV binding named PUSH. No secrets to paste: keys are generated and kept in KV.
+const PROJ = &quot;md-store-30ff6&quot;;
+const FB_KEY = &quot;AIzaSyDPGfxaYuQX73FyolrubNVKda1DAsUJQYI&quot;;
+const OWNER = &quot;07739042001m@gmail.com&quot;;
+const ORIGINS = [&quot;https://07739042001m-source.github.io&quot;];
+
+const b64u = (buf) =&gt; btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, &quot;-&quot;).replace(/\//g, &quot;_&quot;).replace(/=+$/, &quot;&quot;);
+const enc = (s) =&gt; new TextEncoder().encode(s);
+
+function cors(req) {
+  const o = req.headers.get(&quot;Origin&quot;) || &quot;&quot;;
+  return {
+    &quot;Access-Control-Allow-Origin&quot;: ORIGINS.includes(o) ? o : ORIGINS[0],
+    &quot;Access-Control-Allow-Methods&quot;: &quot;GET,POST,OPTIONS&quot;,
+    &quot;Access-Control-Allow-Headers&quot;: &quot;Content-Type,Authorization&quot;,
+    &quot;Content-Type&quot;: &quot;application/json; charset=utf-8&quot;,
+  };
+}
+const J = (req, x, s = 200) =&gt; new Response(JSON.stringify(x), { status: s, headers: cors(req) });
+
+async function vapid(env) {
+  let v = await env.PUSH.get(&quot;vapid&quot;, &quot;json&quot;);
+  if (v) return v;
+  const kp = await crypto.subtle.generateKey({ name: &quot;ECDSA&quot;, namedCurve: &quot;P-256&quot; }, true, [&quot;sign&quot;, &quot;verify&quot;]);
+  const jwk = await crypto.subtle.exportKey(&quot;jwk&quot;, kp.privateKey);
+  const pub = b64u(await crypto.subtle.exportKey(&quot;raw&quot;, kp.publicKey));
+  v = { jwk, pub };
+  await env.PUSH.put(&quot;vapid&quot;, JSON.stringify(v));
+  return v;
+}
+
+async function vapidAuth(env, endpoint) {
+  const v = await vapid(env);
+  const key = await crypto.subtle.importKey(&quot;jwk&quot;, v.jwk, { name: &quot;ECDSA&quot;, namedCurve: &quot;P-256&quot; }, false, [&quot;sign&quot;]);
+  const aud = new URL(endpoint).origin;
+  const h = b64u(enc(JSON.stringify({ typ: &quot;JWT&quot;, alg: &quot;ES256&quot; })));
+  const p = b64u(enc(JSON.stringify({ aud, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: &quot;mailto:&quot; + OWNER })));
+  const sig = b64u(await crypto.subtle.sign({ name: &quot;ECDSA&quot;, hash: &quot;SHA-256&quot; }, key, enc(h + &quot;.&quot; + p)));
+  return `vapid t=${h}.${p}.${sig}, k=${v.pub}`;
+}
+
+async function who(req) {
+  const idt = (req.headers.get(&quot;Authorization&quot;) || &quot;&quot;).replace(/^Bearer\s+/i, &quot;&quot;);
+  if (!idt) return null;
+  const r = await fetch(&quot;https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=&quot; + FB_KEY, {
+    method: &quot;POST&quot;, headers: { &quot;Content-Type&quot;: &quot;application/json&quot; }, body: JSON.stringify({ idToken: idt }),
+  });
+  const d = await r.json().catch(() =&gt; ({}));
+  const u = d.users &amp;&amp; d.users[0];
+  return u ? { uid: u.localId, email: (u.email || &quot;&quot;).toLowerCase(), idt } : null;
+}
+const fsDoc = (path, idt) =&gt; fetch(`https://firestore.googleapis.com/v1/projects/${PROJ}/databases/(default)/documents/${path}`, { headers: { Authorization: &quot;Bearer &quot; + idt } });
+
+async function isStaff(u) {
+  if (!u || !u.email) return false;
+  if (u.email === OWNER) return true;
+  return (await fsDoc(&quot;admins/&quot; + encodeURIComponent(u.email), u.idt)).ok;
+}
+
+async function sendAll(env) {
+  const list = await env.PUSH.list({ prefix: &quot;s:&quot; });
+  let ok = 0;
+  for (const k of list.keys) {
+    const s = await env.PUSH.get(k.name, &quot;json&quot;);
+    if (!s || !s.endpoint) continue;
+    try {
+      const r = await fetch(s.endpoint, {
+        method: &quot;POST&quot;,
+        headers: { TTL: &quot;600&quot;, Urgency: &quot;high&quot;, Authorization: await vapidAuth(env, s.endpoint), &quot;Content-Length&quot;: &quot;0&quot; },
+      });
+      if (r.status === 404 || r.status === 410) await env.PUSH.delete(k.name);
+      else if (r.ok) ok++;
+    } catch (e) {}
+  }
+  return ok;
+}
+
+export default {
+  async fetch(req, env) {
+    if (req.method === &quot;OPTIONS&quot;) return new Response(null, { headers: cors(req) });
+    const path = new URL(req.url).pathname;
+    try {
+      if (path === &quot;/check&quot;) {
+        const n = (await env.PUSH.list({ prefix: &quot;s:&quot; })).keys.length;
+        return J(req, { ok: true, devices: n });
+      }
+      if (path === &quot;/key&quot;) return J(req, { key: (await vapid(env)).pub });
+
+      if (path === &quot;/sub&quot; &amp;&amp; req.method === &quot;POST&quot;) {
+        const u = await who(req);
+        if (!(await isStaff(u))) return J(req, { ok: false, msg: &quot;staff only&quot; }, 403);
+        const sub = await req.json();
+        if (!sub || !/^https:\/\//.test(sub.endpoint || &quot;&quot;)) return J(req, { ok: false }, 400);
+        const id = b64u(await crypto.subtle.digest(&quot;SHA-256&quot;, enc(sub.endpoint))).slice(0, 32);
+        await env.PUSH.put(&quot;s:&quot; + id, JSON.stringify({ endpoint: sub.endpoint, email: u.email, at: Date.now() }));
+        return J(req, { ok: true });
+      }
+
+      if (path === &quot;/ping&quot; &amp;&amp; req.method === &quot;POST&quot;) {
+        const u = await who(req);
+        if (!u) return J(req, { ok: false }, 403);
+        const { oid } = await req.json();
+        if (!/^[A-Za-z0-9]{10,40}$/.test(oid || &quot;&quot;)) return J(req, { ok: false }, 400);
+        if (await env.PUSH.get(&quot;p:&quot; + oid)) return J(req, { ok: true, dup: true });
+        const r = await fsDoc(&quot;orders/&quot; + oid, u.idt);
+        if (!r.ok) return J(req, { ok: false, msg: &quot;no order&quot; }, 404);
+        const d = await r.json();
+        const f = d.fields || {};
+        if (!f.uid || f.uid.stringValue !== u.uid) return J(req, { ok: false }, 403);
+        const ct = Date.parse((f.createdAt &amp;&amp; f.createdAt.timestampValue) || d.createTime || 0);
+        if (!ct || Date.now() - ct &gt; 15 * 60 * 1000) return J(req, { ok: false, msg: &quot;old&quot; }, 400);
+        await env.PUSH.put(&quot;p:&quot; + oid, &quot;1&quot;, { expirationTtl: 86400 });
+        return J(req, { ok: true, sent: await sendAll(env) });
+      }
+
+      if (path === &quot;/test&quot; &amp;&amp; req.method === &quot;POST&quot;) {
+        const u = await who(req);
+        if (!(await isStaff(u))) return J(req, { ok: false }, 403);
+        return J(req, { ok: true, sent: await sendAll(env) });
+      }
+      return J(req, { ok: false, msg: &quot;not found&quot; }, 404);
+    } catch (e) {
+      return J(req, { ok: false, msg: String(e.message || e) }, 500);
+    }
+  },
+};
+</textarea>
+<script>b.onclick=async()=>{t.select();try{await navigator.clipboard.writeText(t.value)}catch(e){document.execCommand("copy")}b.textContent="✅ تم النسخ"}</script></body></html>
