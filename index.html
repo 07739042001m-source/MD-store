@@ -101,6 +101,16 @@ P.m=P.tool;P.w='<rect x="7" y="7" width="10" height="10" rx="3"/><path d="M9 7V3
 const I=(n,c="")=>`<svg class="ico ${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n]||""}</svg>`;
 const C={h:"موبايلات وتابلت",c:"شواحن",k:"كيبلات",p:"باور بانك",e:"سماعات",r:"شواحن سيارة",a:"ملحقات",l:"واقيات كاميرا",w:"ساعات ذكية",m:"قطع غيار"};
 const nz=s=>String(s).toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي");
+const SYN=[[/(\d+)\s*w\b/g,"$1 واط"],[/type[\s\-_]*c|usb[\s\-_]*c|تا?[يىپ]ب\s*س[يى]|تايبسي|تيب\s*سي|تايب/g," typec "],[/lightning|لا[يى]تن+[كگج]|لايتنينج|لايتنن/g," ايفون "],[/iphone|ا[يى]فون|apple|ابل/g," ايفون "],[/air\s*pods?|ا[يى]ر\s*بود[زس]?|ايربود[زس]?|airpods/g," ايربودز "],[/power\s*bank|باور\s*بان[كگ]|باوربان[كگ]|شاحن\s*متنقل|بور\s*بانك/g," باوربانك "],[/samsung|سامسون[كجگ]/g," سامسونك "],[/xiaomi|شاومي|شياومي|ريدمي|redmi|poco|بوكو/g," شاومي "],[/سماع[هات]+\s*راس|head\s*phones?|هيد\s*فون|هدفون|هيدفون/g," هيدفون سماعه "],[/bluetooth|بلو\s*توث|لاسلكي[هة]?|wireless|وايرلس/g," بلوتوث "],[/chargers?|شواحن|شاحنه/g," شاحن "],[/cables?|كابلات|كابل|كيبلات|واير|وايرات/g," كيبل "],[/ear\s*phones?|سماعات|سماعه|هاند\s*فري|هندفري/g," سماعه "],[/speakers?|سبي[كگ]ر(ات)?/g," سبيكر "],[/smart\s*watch|watch(es)?|ساعات|ساعه/g," ساعه "],[/gaming|games?|العاب|لعاب|كيمن[كگ]|جيمن[جغ]|قيمن[كگ]/g," العاب "],[/neck|رقبه/g," رقبه "],[/fan|مروحه|مراوح|مبرد(ه)?/g," مروحه "],[/holders?|حامل(ات)?|ستاند(ات)?/g," حامل "]];
+const STOP=new Set(["مال","مع","الى","على","من","في","و","او","ل","ب","اريد","ابي","عدكم","عندكم","شي","شكد","سعر","بكم"]);
+const sNorm=s=>{let t=nz(s).replace(/[ً-ْـ]/g,"");SYN.forEach(([r,v])=>{t=t.replace(r,v)});return t.replace(/[^\p{L}\p{N}]+/gu," ").replace(/\s+/g," ").trim()};
+const sTok=s=>sNorm(s).split(" ").map(w=>w.length>4&&w.startsWith("ال")?w.slice(2):w).filter(w=>w&&!STOP.has(w));
+const STX=new WeakMap();
+const sTxt=p=>{let t=STX.get(p);if(t===undefined){let x=(p.n||"")+" "+(p.s||"")+" "+(p.br||"")+" "+((typeof BAR!="undefined"&&BAR[p.br])||"")+" "+(C[p.c]||"");try{if(typeof msubOf=="function")x+=" "+msubName(msubOf(p))}catch(e){}t=" "+sTok(x).join(" ")+" ";STX.set(p,t)}return t};
+const sHit=(t,w)=>/^\d+$/.test(w)?t.includes(" "+w+" "):t.includes(w);
+const SNX=new WeakMap(),sNm=p=>{let t=SNX.get(p);if(t===undefined){t=" "+sTok((p.n||"")+" "+(p.br||"")).join(" ")+" ";SNX.set(p,t)}return t};
+function srch(L,q){const T=sTok(q||"");if(!T.length)return L;const A=L.filter(p=>{const t=sTxt(p);return T.every(w=>sHit(t,w))});if(A.length){const a=[],b=[];A.forEach(p=>{const n=sNm(p);(T.every(w=>sHit(n,w))?a:b).push(p)});return a.concat(b)}
+ const need=Math.max(1,Math.ceil(T.length/2));return L.map(p=>{const t=sTxt(p);return[p,T.filter(w=>sHit(t,w)).length]}).filter(x=>x[1]>=need).sort((a,b)=>b[1]-a[1]).map(x=>x[0])}
 let pbB=0,pbM="",MP=null,brd="";const dkey=(b,m)=>b+"_"+m.replace(/[\s/]+/g,"_"),sd=s=>[...s].reduce((a,c)=>a+c.charCodeAt(0),0);
 const dimg=(bi,m)=>{const k=dkey(bi,m);if(MP&&MP[k])return MP[k];const i=PB[bi][2].indexOf(m);return phoneSVG(PB[bi][3]?PB[bi][3][i]:"c3:p",sd(m))};
 function loadMP(){if(MP)return;MP={};API.listDevices().then(L=>{L.forEach(x=>MP[x.id]=x.img);if(cat=="m"&&!q)grid()}).catch(()=>{})}
@@ -380,7 +390,7 @@ function gmore(){const m=$("#gmore");if(!m)return;if(!GIO)GIO=new IntersectionOb
 function grid(){
  const g=$("#grid");if(!g)return;
  if(!loaded){g.innerHTML=Array(6).fill('<div><div class="skel"></div></div>').join("");$("#sect").textContent="المنتجات";$("#cnt").textContent="";return}
- mdSubBar();let L0=PR.filter(p=>vis(p)&&(!msub||msubOf(p)==msub)&&((cat=="all"&&p.c!="m")||(cat=="fav"?FAV.has(p.id):p.c==cat))&&nz((p.n||"")+" "+(p.s||"")+" "+(p.br||"")+" "+(BAR[p.br]||"")).includes(nz(q)));
+ mdSubBar();let L0=PR.filter(p=>vis(p)&&(!msub||msubOf(p)==msub)&&((cat=="all"&&p.c!="m")||(cat=="fav"?FAV.has(p.id):p.c==cat)));L0=srch(L0,q);
  const bl=[...new Set(L0.map(p=>p.br).filter(Boolean))].sort((a,b)=>L0.filter(p=>p.br==b).length-L0.filter(p=>p.br==a).length);const fh=bl.filter(b=>FAH.has(b));const jb=bl.filter(b=>JIB.has(b));if(brd&&brd[0]!="@"&&!bl.includes(brd))brd="";if(brd=="@F"&&!fh.length)brd="";if(brd=="@J"&&!jb.length)brd="";
  const bx=$("#brs");if(bx)bx.innerHTML=bl.length>1&&cat!="m"?[`<button class="bt all${brd?"":" on"}" data-br=""><b>الكل</b><small>كل الماركات</small></button>`,...bl.filter(b=>(BAR[b]||b)!="عام").map(b=>{const t=BT[b]||[b,"#20242c","#fff"],ph=(L0.find(p=>p.br==b&&/(^|\/)(p\d+|x\d+)\.jpg/.test(p.img||""))||{}).img;return`<button class="bt${ph?" ph":""}${b==brd?" on":""}" data-br="${E(b)}" style="--bc:${t[1]};--tc:${t[2]}">${ph?`<img src="${E(String(ph).replace(/^products\/([xy])/,"products/t/$1"))}" alt="" loading="lazy" decoding="async">`:""}<b>${E(t[0])}</b><small>${E(BAR[b]||b)}</small></button>`})].join(""):"";
  let L=brd=="@F"?L0.filter(p=>FAH.has(p.br)):brd=="@J"?L0.filter(p=>JIB.has(p.br)):brd?L0.filter(p=>p.br==brd):L0;
