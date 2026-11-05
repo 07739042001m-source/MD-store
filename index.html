@@ -101,16 +101,38 @@ P.m=P.tool;P.w='<rect x="7" y="7" width="10" height="10" rx="3"/><path d="M9 7V3
 const I=(n,c="")=>`<svg class="ico ${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n]||""}</svg>`;
 const C={h:"موبايلات وتابلت",c:"شواحن",k:"كيبلات",p:"باور بانك",e:"سماعات",r:"شواحن سيارة",a:"ملحقات",l:"واقيات كاميرا",w:"ساعات ذكية",m:"قطع غيار"};
 const nz=s=>String(s).toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي");
-const SYN=[[/(\d+)\s*w\b/g,"$1 واط"],[/type[\s\-_]*c|usb[\s\-_]*c|تا?[يىپ]ب\s*س[يى]|تايبسي|تيب\s*سي|تايب/g," typec "],[/lightning|لا[يى]تن+[كگج]|لايتنينج|لايتنن/g," ايفون "],[/iphone|ا[يى]فون|apple|ابل/g," ايفون "],[/air\s*pods?|ا[يى]ر\s*بود[زس]?|ايربود[زس]?|airpods/g," ايربودز "],[/power\s*bank|باور\s*بان[كگ]|باوربان[كگ]|شاحن\s*متنقل|بور\s*بانك/g," باوربانك "],[/samsung|سامسون[كجگ]/g," سامسونك "],[/xiaomi|شاومي|شياومي|ريدمي|redmi|poco|بوكو/g," شاومي "],[/سماع[هات]+\s*راس|head\s*phones?|هيد\s*فون|هدفون|هيدفون/g," هيدفون سماعه "],[/bluetooth|بلو\s*توث|لاسلكي[هة]?|wireless|وايرلس/g," بلوتوث "],[/chargers?|شواحن|شاحنه/g," شاحن "],[/cables?|كابلات|كابل|كيبلات|واير|وايرات/g," كيبل "],[/ear\s*phones?|سماعات|سماعه|هاند\s*فري|هندفري/g," سماعه "],[/speakers?|سبي[كگ]ر(ات)?/g," سبيكر "],[/smart\s*watch|watch(es)?|ساعات|ساعه/g," ساعه "],[/gaming|games?|العاب|لعاب|كيمن[كگ]|جيمن[جغ]|قيمن[كگ]/g," العاب "],[/neck|رقبه/g," رقبه "],[/fan|مروحه|مراوح|مبرد(ه)?/g," مروحه "],[/holders?|حامل(ات)?|ستاند(ات)?/g," حامل "]];
-const STOP=new Set(["مال","مع","الى","على","من","في","و","او","ل","ب","اريد","ابي","عدكم","عندكم","شي","شكد","سعر","بكم"]);
+const SYN=[[/(\d+)\s*w\b/g,"$1 واط"],[/(\d+)\s*(mah|ملي\s*امبير|مللي)/g,"$1"],[/(\d+)\s*(الف|ألف)(?![\u0600-\u06FF])/g,"$1000"],
+[/type[\s\-_]*c|usb[\s\-_]*c|تا?[يىپ]ب\s*س[يى]|تايبسي|تيب\s*سي|تايب|اندرويد\s*جديد/g," typec "],[/micro|مايكرو|مايكروي|v8|في\s*8|اندرويد\s*قديم/g," مايكرو "],
+[/lightning|لا[يى]تن+[كگج]|لايتنينج|لايتنن/g," ايفون "],[/iphone|ا[يى]فون|ايفوون|افون|apple|ابل/g," ايفون "],[/ipad|ا[يى]باد|تابلت|تاب(?![\u0600-\u06FF])/g," ايباد "],
+[/air\s*pods?|ا[يى]ر\s*بود[زس]?|ايربود[زس]?|airpods|بودز|buds/g," ايربودز "],
+[/power\s*bank|باور\s*بان[كگ]|باوربان[كگ]|بور\s*بانك|بنك\s*شحن|شاحن\s*(متنقل|محمول)|باور(?![\u0600-\u06FF])/g," باوربانك "],
+[/samsung|سامسون[كجگ]|سامسون/g," سامسونك "],[/xiaomi|شاومي|شياومي|ريدمي|redmi|poco|بوكو/g," شاومي "],[/huawei|هواوي|هواوى/g," هواوي "],
+[/سماع[هات]+\s*راس|head\s*(phones?|set)|هيد\s*(فون|سيت)|هدفون|هيدفون/g," هيدفون سماعه "],
+[/(واير|سلك)\s*شحن|شحن\s*(واير|سلك)/g," كيبل "],
+[/bluetooth|بلو\s*توث|لاسلكي[هة]?|wireless|وايرلس|بدون\s*(واير|سلك)/g," بلوتوث "],
+[/شاحن\s*(سياره|سيارات|للسياره)|ولاع[هة]|car\s*charger/g," شاحن سياره "],
+[/chargers?|شواحن|شاحنه|شحان|راس\s*شاحن|بلك(?![\u0600-\u06FF])/g," شاحن "],
+[/cables?|كابلات|كابل|كيبلات|وايرات/g," كيبل "],[/(^|[^\u0600-\u06FF])(بال)?(واير|سلك)(?![\u0600-\u06FF])/g,"$1 كيبل "],[/وايري|سلكي(?![\u0600-\u06FF])/g," سلكيه "],
+[/ear\s*phones?|سماعات|سماعه|سماعة|هاند\s*فري|هندفري|هاندز|سماعه\s*اذن/g," سماعه "],
+[/speakers?|سبي[كگ]ر(ات)?|مكبر\s*صوت|ستيريو/g," سبيكر "],[/smart\s*watch|watch(es)?|ساعات|ساعه|سمارت\s*واتش/g," ساعه "],
+[/gaming|games?|العاب|لعاب|كيمن[كگ]|جيمن[جغ]|قيمن[كگ]|pubg|ببجي|فري\s*فاير/g," العاب ببجي "],[/neck|رقبه|نيك\s*باند/g," رقبه "],
+[/fan|مروحه|مراوح|مبرد(ه)?|تبريد/g," مروحه "],[/holders?|حامل(ات)?|ستاند(ات)?|حماله|ماسك[هة]?\s*(موبايل|سياره)?/g," حامل "],
+[/covers?|cases?|كفرات|كفر|غطا[ءء]?|جراب/g," كفر "],[/لزك[هة]|لزگ[هة]|لصق[هة]?|لاصق[هة]?|سكرين|حمايه\s*شاشه|screen\s*protector/g," لاصق "],
+[/flash|فلاش[هة]?|ميموري|ذاكره|يو\s*اس\s*بي/g," فلاش "],[/router|راوتر|مودم|واي\s*فاي|wifi/g," راوتر "],
+[/ماوس|فاره|mouse/g," ماوس "],[/keyboard|كيبورد|لوحه\s*مفاتيح/g," كيبورد "],[/حلاق[هة]|ماكن[هة]|مكين[هة]|ماكين[هة]|شيفر|تريمر|trimmer/g," ماكينه "],
+[/جو[يى]?ستك|يد\s*تحكم|دراع|ذراع|controller/g," جوستك "],[/زراير|ازرار|اصابع/g," ازرار "],
+[/magsafe|ماك\s*سيف|ماق\s*سيف|مغناطيس[يه]*|مگنت|مغنيط/g," مغناطيسي "],
+[/fast|فاست|سوبر\s*فاست|شحن\s*سريع/g," سريع "],[/copy|كوبي|تقليد|هاي\s*كوبي|درج[هة]\s*(ثانيه|اولى)|بلادي/g," كوبي "],[/original|اوريجنال|اصلي|أصلي/g," اصلي "],
+[/موبا[يى]ل(ات)?|تلفون(ات)?|جوال|هاتف|موبيل/g," موبايل "]];
+const STOP=new Set(["مال","مع","الى","على","من","في","و","او","ل","ب","اريد","ابي","عدكم","عندكم","شي","شكد","سعر","بكم","رخيص","ارخص","زين","حلو","احسن","افضل","نوع","جديد","يمعود","رجاء","لو","سمحت","بيه","بيها","يوجد","متوفر","عدك","عندك","شنو","شلون","هذا","هاي","ممكن"]);
 const sNorm=s=>{let t=nz(s).replace(/[ً-ْـ]/g,"");SYN.forEach(([r,v])=>{t=t.replace(r,v)});return t.replace(/[^\p{L}\p{N}]+/gu," ").replace(/\s+/g," ").trim()};
 const sTok=s=>sNorm(s).split(" ").map(w=>w.length>4&&w.startsWith("ال")?w.slice(2):w).filter(w=>w&&!STOP.has(w));
 const STX=new WeakMap();
-const sTxt=p=>{let t=STX.get(p);if(t===undefined){let x=(p.n||"")+" "+(p.s||"")+" "+(p.br||"")+" "+((typeof BAR!="undefined"&&BAR[p.br])||"")+" "+(C[p.c]||"");try{if(typeof msubOf=="function")x+=" "+msubName(msubOf(p))}catch(e){}t=" "+sTok(x).join(" ")+" ";STX.set(p,t)}return t};
+const sTxt=p=>{let t=STX.get(p);if(t===undefined){let x=(p.n||"")+" "+(p.s||"")+" "+(p.br||"")+" "+((typeof BAR!="undefined"&&BAR[p.br])||"")+" "+(C[p.c]||"");try{if(typeof msubOf=="function")x+=" "+msubName(msubOf(p))}catch(e){}t=" "+sTok(x).join(" ")+" ";if(p.c=="e"&&!/ بلوتوث | ايربودز | سبيكر | tws /.test(t))t+="سلكيه ";try{if(isOrg(p))t+="اصلي "}catch(e){}if(p.c=="r")t+="سياره ";STX.set(p,t)}return t};
 const sHit=(t,w)=>/^\d+$/.test(w)?t.includes(" "+w+" "):t.includes(w);
 const SNX=new WeakMap(),sNm=p=>{let t=SNX.get(p);if(t===undefined){t=" "+sTok((p.n||"")+" "+(p.br||"")).join(" ")+" ";SNX.set(p,t)}return t};
-function srch(L,q){const T=sTok(q||"");if(!T.length)return L;const A=L.filter(p=>{const t=sTxt(p);return T.every(w=>sHit(t,w))});if(A.length){const a=[],b=[];A.forEach(p=>{const n=sNm(p);(T.every(w=>sHit(n,w))?a:b).push(p)});return a.concat(b)}
- const need=Math.max(1,Math.ceil(T.length/2));return L.map(p=>{const t=sTxt(p);return[p,T.filter(w=>sHit(t,w)).length]}).filter(x=>x[1]>=need).sort((a,b)=>b[1]-a[1]).map(x=>x[0])}
+function srch(L,q){let T=[...new Set(sTok(q||""))];if(!T.length)return L;if(T.some(w=>w=="سماعه"||w=="هيدفون")&&/واير|سلك/.test(nz(q)))T=T.map(w=>w=="كيبل"?"سلكيه":w);const A=L.filter(p=>{const t=sTxt(p);return T.every(w=>sHit(t,w))});if(A.length){const a=[],b=[];A.forEach(p=>{const n=sNm(p);(T.every(w=>sHit(n,w))?a:b).push(p)});return a.concat(b)}
+ const need=T.length<=2?1:T.length-1;return L.map(p=>{const t=sTxt(p);return[p,T.filter(w=>sHit(t,w)).length]}).filter(x=>x[1]>=need).sort((a,b)=>b[1]-a[1]).map(x=>x[0])}
 let pbB=0,pbM="",MP=null,brd="";const dkey=(b,m)=>b+"_"+m.replace(/[\s/]+/g,"_"),sd=s=>[...s].reduce((a,c)=>a+c.charCodeAt(0),0);
 const dimg=(bi,m)=>{const k=dkey(bi,m);if(MP&&MP[k])return MP[k];const i=PB[bi][2].indexOf(m);return phoneSVG(PB[bi][3]?PB[bi][3][i]:"c3:p",sd(m))};
 function loadMP(){if(MP)return;MP={};API.listDevices().then(L=>{L.forEach(x=>MP[x.id]=x.img);if(cat=="m"&&!q)grid()}).catch(()=>{})}
