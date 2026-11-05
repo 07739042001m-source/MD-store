@@ -403,10 +403,21 @@ if(!sec){if(!v.querySelector(".secs")){v.dataset.sec="";const nd=PB.reduce((a,b)
 const JIB=new Set(["UGREEN"]);const FAH=new Set(["Anker","Soundcore","Oraimo","Momax","Philips","Mcdodo"]);
 const BT={Anker:["ANKER","#00a7e1","#fff"],Soundcore:["soundcore","#00a7e1","#fff"],Oraimo:["oraimo","#2bd640","#0b1f0e"],Momax:["momax","#ffffff","#1f5fd1"],Philips:["PHILIPS","#0b5ed7","#fff"],Mcdodo:["Mcdodo","#1F62FF","#fff"],UGREEN:["UGREEN","#00a65a","#fff"],Samsung:["SAMSUNG","#1428a0","#fff"],Apple:["Apple","#111","#fff"],Xiaomi:["Xiaomi","#004CFF","#fff"],Huawei:["HUAWEI","#0945CF","#fff"],Honor:["HONOR","#0a0a0a","#fff"],JBL:["JBL","#004CFF","#fff"],Realme:["realme","#ffc915","#111"],Infinix:["Infinix","#111","#7cff4f"],Tecno:["TECNO","#0055ff","#fff"],Hoco:["hoco.","#111","#fff"],Remax:["REMAX","#0044E6","#fff"],Porodo:["PORODO","#111","#fff"],Nokia:["NOKIA","#124191","#fff"],Siwar:["Siwar","#0d3b66","#fff"],"Sing-e":["Sing-e","#5b2a86","#fff"],SanDisk:["SanDisk","#1F58E0","#fff"],Toshiba:["TOSHIBA","#0044E6","#fff"],Razer:["RAZER","#111","#44d62c"],HyperX:["HyperX","#111","#1854E3"],"TP-Link":["tp-link","#4acbd6","#fff"],Tenda:["Tenda","#0C4EE8","#fff"],Vision:["VISION","#1d5fa8","#fff"],Moxom:["MOXOM","#111","#fff"],WEKOME:["WEKOME","#111","#fff"]};
 const PAYW="",MDFREE=15000,MDMIN=5000;let PMX="c";
-async function payBack(){const m=location.hash.match(/^#paid=([\w-]+)$/);if(!m)return;const ref=m[1];try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
- toast("جاري التأكد من الدفع…");let st="";for(let i=0;i<6&&!/complete|paid|success|delivered/i.test(st);i++){try{st=(await (await fetch(PAYW+"/status?ref="+encodeURIComponent(ref))).json()).status||""}catch(e){}if(!/complete|paid|success|delivered/i.test(st))await new Promise(r=>setTimeout(r,2500))}
- const ok=/complete|paid|success|delivered/i.test(st);toast(ok?"تم الدفع بنجاح ✓ شكراً إلك":"ما تأكد الدفع بعد. إذا دفعت، راح نتأكد ونرد عليك");
- try{await API.sendMine((ok?"✅ تم الدفع إلكترونياً":"⚠️ الدفع ما تأكد")+" — رقم الدفع: "+ref,(AC&&AC.n)||"",(AC&&AC.p)||"","a")}catch(e){}CK="a";setTab("chat")}
+const PAYOK=s=>/complete|paid|success|delivered/i.test(s||"");
+async function payStatus(ref){try{return (await (await fetch(PAYW+"/status?ref="+encodeURIComponent(ref))).json()).status||""}catch(e){return ""}}
+let PAYING=false;async function paySubmit(P){let no="",done=false;for(let i=0;i<6&&!done;i++){try{no=await API.addOrder({...P.od,pay:"wayl",payref:P.ref,paid:true});done=true}catch(e){await new Promise(r=>setTimeout(r,1500))}}if(!done)return false;
+ try{localStorage.removeItem("md_ppay")}catch(e){}if(P.cart){for(const k in P.cart)delete cart[k];sv();badge()}pushPing();
+ const m=String(P.m||"").replace(/^(.*)$/m,"$1"+(no?" #"+no:"")).replace("إلكتروني (ويل) — ينتظر التأكيد","إلكتروني (ويل) — مدفوع ✅");
+ notify("🔔 بيع جديد — مدفوع إلكترونياً ✅\n"+m+"\nرقم الدفع: "+P.ref);
+ try{await API.sendMine("🛍️ طلب اكسسوارات — مدفوع إلكترونياً ✅\n"+m+"\nرقم الدفع: "+P.ref,P.n||cu.n,P.p||cu.p,"a")}catch(e){}return true}
+async function payBack(){const hm=location.hash.match(/^#paid=([\w-]+)$/);let P=null;try{P=JSON.parse(localStorage.getItem("md_ppay")||"null")}catch(e){}
+ if(hm){try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}}
+ if(!P||!P.ref||PAYING)return;
+ if(Date.now()-(P.t||0)>6*3600e3){try{localStorage.removeItem("md_ppay")}catch(e){}return}
+ if(hm)toast("جاري التأكد من الدفع…");let st="";for(let i=0;i<(hm?6:1)&&!PAYOK(st);i++){st=await payStatus(P.ref);if(!PAYOK(st)&&hm)await new Promise(r=>setTimeout(r,2500))}
+ if(PAYOK(st)){PAYING=true;const ok=await paySubmit(P);PAYING=false;if(ok){toast("تم الدفع ✓ وانرسل طلبك، شكراً إلك");CK="a";setTab("chat")}else if(hm)toast("انقبض الدفع ✓ بس الطلب ما انرسل، افتح التطبيق مرة ثانية")}
+ else if(hm){if(P.cart&&!Object.keys(cart).length){cart=P.cart;sv();badge()}toast("الدفع ما اكتمل، فطلبك ما انرسل. رجعنالك السلة، تگدر تدفع مرة ثانية أو تختار الدفع عند الاستلام");setTab("cart")}}
+setInterval(()=>{try{if(localStorage.getItem("md_ppay")&&loaded)payBack()}catch(e){}},60000);
 function cats(){const cc=$("#cats");if(!cc)return;cc.innerHTML=[["all","الكل"],["fav","المفضلة"],...Object.entries(C).filter(([k])=>k!="m"&&(!loaded||PR.some(p=>p.c==k&&vis(p))))].map(([k,n])=>`<button class="cat${k==cat?" on":""}" data-k="${k}" role="tab" aria-selected="${k==cat}"><i>${I(k=="all"?"all":k=="fav"?"heart":k)}</i>${n}</button>`).join("")}
 let GL=[],GN=0,GIO=null;
 function gmore(){const m=$("#gmore");if(!m)return;if(!GIO)GIO=new IntersectionObserver(es=>{if(es.some(x=>x.isIntersecting)){const m2=$("#gmore");if(!m2)return;const n=Math.min(GL.length,GN+24);m2.insertAdjacentHTML("beforebegin",GL.slice(GN,n).map(card).join(""));GN=n;if(GN>=GL.length)m2.remove()}},{rootMargin:"600px"});GIO.disconnect();GIO.observe(m)}
@@ -474,12 +485,13 @@ async function sendNow(to,keep){
  if(!cu.n.trim()||cu.p.replace(/\D/g,"").length<10||(dm!="p"&&!cu.a.trim()&&!cu.l)){er("اكتب الاسم ورقم هاتف صحيح والعنوان حتى نكمل الطلب.");return}
  const D=disc(),t=D.t-D.d,fee=(dm=="d"&&t>=MDFREE)?0:S.fee[dm],kf=D.t?t/D.t:1;let no="";
  const b=$("#send");if(b)b.disabled=true;er("");
- try{no=await API.addOrder({name:cu.n.trim(),phone:cu.p.trim(),address:dm=="p"?"":cu.a.trim(),location:cu.l||"",...(dm=="w"?{gov:cu.g||""}:{}),delivery:{d:"driver",w:"wasit",p:"pickup"}[dm],driver:dm=="d"?S.dr[dr].n:"",...(dm=="d"&&S.dr[dr].e?{de:S.dr[dr].e}:{}),items:Object.keys(cart).filter(G).map(id=>({id,n:G(id).n,q:cart[id],p:Math.round(G(id).p*kf),...(D.d?{op:G(id).p}:{})})),subtotal:t,fee,total:t+fee})}catch(e){}
- const m=orderText(no);if(no)pushPing();
- if(PMX=="k"){const ref="YQ-"+(no||"X")+"-"+Date.now().toString(36).toUpperCase();let u=null;try{const r=await fetch(PAYW+"/pay",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref,total:t+fee,back:location.origin+location.pathname+"#paid="+ref})});u=(await r.json()).url}catch(e){}
+ const od={name:cu.n.trim(),phone:cu.p.trim(),address:dm=="p"?"":cu.a.trim(),location:cu.l||"",...(dm=="w"?{gov:cu.g||""}:{}),delivery:{d:"driver",w:"wasit",p:"pickup"}[dm],driver:dm=="d"?S.dr[dr].n:"",...(dm=="d"&&S.dr[dr].e?{de:S.dr[dr].e}:{}),items:Object.keys(cart).filter(G).map(id=>({id,n:G(id).n,q:cart[id],p:Math.round(G(id).p*kf),...(D.d?{op:G(id).p}:{})})),subtotal:t,fee,total:t+fee};
+ if(PMX=="k"){const ref="YQ-"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase();let u=null;try{const r=await fetch(PAYW+"/pay",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref,total:t+fee,back:location.origin+location.pathname+"#paid="+ref})});u=(await r.json()).url}catch(e){}
   if(!u){if(b)b.disabled=false;er("تعذّر فتح صفحة الدفع. جرّب مرة ثانية أو اختار الدفع عند الاستلام.");return}
-  notify("🔔 بيع جديد (دفع إلكتروني)\n"+m+"\nرقم الدفع: "+ref);try{await API.sendMine("🛍️ طلب اكسسوارات — دفع إلكتروني\n"+m+"\nرقم الدفع: "+ref,cu.n,cu.p,"a")}catch(e){}
+  try{localStorage.setItem("md_ppay",JSON.stringify({ref,od,m:orderText(""),cart,n:cu.n,p:cu.p,t:Date.now()}))}catch(e){}
   cart={};sv();badge();location.href=u;return}
+ try{no=await API.addOrder(od)}catch(e){}
+ const m=orderText(no);if(no)pushPing();
  notify("🔔 بيع جديد\n"+m);if(!keep){cart={};sv();badge()}
  try{await API.sendMine("🛍️ طلب اكسسوارات\n"+m,cu.n,cu.p,"a");toast("انرسل طلبك ✓ تابع الرد هنا");CK="a";setTab("chat")}catch(e){toast("ما انرسلت الرسالة، بس طلبك انحفظ ✓");setTab("orders")}}
 function ordersView(){if(DRV)return driverView();setTimeout(mapsInit,0);const ms=x=>x.createdAt&&x.createdAt.toMillis?x.createdAt.toMillis():(x.t||Date.now());
