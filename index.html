@@ -118,6 +118,7 @@ async function pushSub(ask){try{if(!("serviceWorker"in navigator)||!("PushManage
  if(s&&s.options&&s.options.applicationServerKey){const a=new Uint8Array(s.options.applicationServerKey),b=u8(k);if(a.length!=b.length||a.some((x,i)=>x!=b[i])){await s.unsubscribe();s=null}}
  if(!s)s=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(k)});
  const r=await fetch(PUSHW+"/sub",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+await API.tok()},body:JSON.stringify(s.toJSON())});return r.ok}catch(e){return false}}
+document.addEventListener("click",async e=>{if(!e.target.closest("#pushon"))return;try{closeDrawer()}catch(x){}if(!window.Notification){toast("هذا الجهاز ما يدعم الإشعارات");return}if(Notification.permission=="denied"){toast("الإشعارات مقفولة: افتح إعدادات التلفون ⬅️ التطبيقات ⬅️ هذا التطبيق ⬅️ الإشعارات، وفعّلها");return}toast("لحظة…");const ok=await pushSub(true);if(!ok){toast("ما تفعّلت، تأكد سامح بالإشعارات وعندك نت");return}try{const r=await fetch(PUSHW+"/test",{method:"POST",headers:{Authorization:"Bearer "+await API.tok()}});const d=await r.json();toast(d.sent?"تم ✓ وصلك إشعار تجربة":"تفعّلت ✓ بس التجربة ما وصلت")}catch(x){toast("تفعّلت ✓")}});
 async function pushInit(){if(!OWN)return;if(await pushSub(false))return;if(document.getElementById("pushb")||!window.Notification||Notification.permission=="denied")return;
  const b=document.createElement("div");b.id="pushb";b.className="pushb";b.innerHTML='<span>🔔 فعّل إشعارات الطلبات حتى يجيك صوت حتى لو التطبيق مسكّر</span><button type="button" data-pon>تفعيل</button><button type="button" data-poff aria-label="إغلاق">✕</button>';document.body.appendChild(b);
  b.addEventListener("click",async e=>{if(e.target.closest("[data-poff]")){b.remove();return}if(e.target.closest("[data-pon]")){const ok=await pushSub(true);b.remove();toast(ok?"تم ✓ راح يجيك إشعار بكل طلب جديد":"ما تفعّلت الإشعارات، اسمح بالإشعارات من إعدادات التطبيق")}})}
@@ -535,7 +536,7 @@ function drawer(){const n=sum()[0];$("#dw").innerHTML=`<div class="dhead"><div c
  ${S.ph.map(x=>`<a href="tel:${E(x.n)}">${I(/صيان/.test(x.l)?"tool":"phone")}اتصل ${E(x.l)}<span class="cnt ltr">${E(x.n)}</span></a>`).join("")}
  <button id="shapp3">${I("share")}مشاركة التطبيق</button>
  ${standalone()?"":`<button id="inst3">${I("dl")}تثبيت التطبيق</button>`}
- ${OWN?`<hr><button id="adm3">${I("gear")}لوحة الإدارة</button>`:""}
+ ${OWN?`<hr><button id="adm3">${I("gear")}لوحة الإدارة</button><button id="pushon">🔔 تفعيل وتجربة إشعارات الطلبات</button>`:""}
  </nav><p class="dfoot">MD MOBILE</p>`}
 function openDrawer(){drawer();$("#dw").classList.add("on");$("#dov").classList.add("on");$("#dw").setAttribute("aria-hidden","false");$("#menu").setAttribute("aria-expanded","true");const f=$("#dw button");f&&f.focus()}
 function closeDrawer(){$("#dw").classList.remove("on");$("#dov").classList.remove("on");$("#dw").setAttribute("aria-hidden","true");$("#menu").setAttribute("aria-expanded","false")}
