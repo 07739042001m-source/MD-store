@@ -1,0 +1,97 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>قواعد MD</title><meta name="robots" content="noindex">
+<style>body{font-family:system-ui;background:#0b1630;color:#fff;margin:0;padding:16px}button{width:100%;padding:18px;font-size:20px;border:0;border-radius:14px;background:#1e6bff;color:#fff;font-weight:700}textarea{width:100%;height:55vh;margin-top:14px;direction:ltr;font:12px monospace;border-radius:10px;box-sizing:border-box}p{font-size:17px}</style></head><body>
+<p>دوس الزر، وبعدين الصقه بـ Firebase ⬅️ Firestore ⬅️ Rules بدل كل الموجود، ودوس Publish 👇</p>
+<button id="b">📋 انسخ الكود</button>
+<textarea id="t" readonly>rules_version = &#x27;2&#x27;;
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner() {
+      return request.auth != null
+        &amp;&amp; request.auth.token.get(&#x27;email&#x27;, &#x27;&#x27;) == &#x27;07739042001m@gmail.com&#x27;
+        &amp;&amp; request.auth.token.get(&#x27;email_verified&#x27;, false) == true;
+    }
+    function isAdmin() {
+      return request.auth != null
+        &amp;&amp; request.auth.token.get(&#x27;email_verified&#x27;, false) == true
+        &amp;&amp; exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
+    }
+    function staff() { return isOwner() || isAdmin(); }
+    function mine(cid) {
+      return request.auth != null &amp;&amp; (request.auth.uid == cid || request.auth.uid + &#x27;_m&#x27; == cid);
+    }
+    function isDriver() {
+      return request.auth != null
+        &amp;&amp; request.auth.token.get(&#x27;email_verified&#x27;, false) == true
+        &amp;&amp; exists(/databases/$(database)/documents/drivers/$(request.auth.token.email));
+    }
+    match /drivers/{e} {
+      allow read: if isOwner() || (request.auth != null &amp;&amp; request.auth.token.get(&#x27;email&#x27;, &#x27;&#x27;) == e);
+      allow write: if isOwner();
+    }
+    match /admins/{e} {
+      allow read: if isOwner() || (request.auth != null &amp;&amp; request.auth.token.get(&#x27;email&#x27;, &#x27;&#x27;) == e);
+      allow write: if isOwner();
+    }
+    match /products/{id} {
+      allow read: if true;
+      allow write: if staff();
+    }
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+    match /devices/{id} {
+      allow read: if true;
+      allow write: if isOwner()
+        &amp;&amp; (request.resource == null || (request.resource.data.keys().hasOnly([&#x27;img&#x27;]) &amp;&amp; request.resource.data.img is string &amp;&amp; request.resource.data.img.size() &lt; 700000));
+    }
+    match /stock/{id} {
+      allow read, write: if staff();
+    }
+    match /moves/{id} {
+      allow read, write: if staff();
+    }
+    match /customers/{uid} {
+      allow read: if isOwner() || (request.auth != null &amp;&amp; request.auth.uid == uid);
+      allow create, update: if request.auth != null &amp;&amp; request.auth.uid == uid
+        &amp;&amp; request.resource.data.keys().hasOnly([&#x27;name&#x27;,&#x27;phone&#x27;,&#x27;address&#x27;,&#x27;updatedAt&#x27;])
+        &amp;&amp; request.resource.data.name is string &amp;&amp; request.resource.data.name.size() &lt;= 80
+        &amp;&amp; request.resource.data.phone is string &amp;&amp; request.resource.data.phone.size() &lt;= 20;
+      allow delete: if isOwner();
+    }
+    match /chats/{cid} {
+      allow read: if staff() || mine(cid);
+      allow create, update: if (staff() || mine(cid))
+        &amp;&amp; request.resource.data.keys().hasOnly([&#x27;n&#x27;,&#x27;p&#x27;,&#x27;last&#x27;,&#x27;at&#x27;,&#x27;su&#x27;,&#x27;cu&#x27;]);
+      allow delete: if staff();
+      match /msgs/{m} {
+        allow read: if staff() || mine(cid);
+        allow create: if request.resource.data.keys().hasOnly([&#x27;t&#x27;,&#x27;f&#x27;,&#x27;at&#x27;])
+          &amp;&amp; request.resource.data.t is string &amp;&amp; request.resource.data.t.size() &lt;= 1500
+          &amp;&amp; ((mine(cid) &amp;&amp; request.resource.data.f == &#x27;u&#x27;)
+              || (staff() &amp;&amp; request.resource.data.f == &#x27;s&#x27;));
+        allow delete: if staff();
+      }
+    }
+    match /orders/{id} {
+      allow create: if request.auth != null
+        &amp;&amp; request.resource.data.uid == request.auth.uid
+        &amp;&amp; request.resource.data.status == &#x27;new&#x27;
+        &amp;&amp; request.resource.data.keys().hasOnly([&#x27;uid&#x27;,&#x27;name&#x27;,&#x27;phone&#x27;,&#x27;address&#x27;,&#x27;location&#x27;,&#x27;gov&#x27;,&#x27;delivery&#x27;,&#x27;driver&#x27;,&#x27;de&#x27;,&#x27;dq&#x27;,&#x27;cf&#x27;,&#x27;pay&#x27;,&#x27;payref&#x27;,&#x27;paid&#x27;,&#x27;items&#x27;,&#x27;subtotal&#x27;,&#x27;fee&#x27;,&#x27;total&#x27;,&#x27;status&#x27;,&#x27;createdAt&#x27;])
+        &amp;&amp; (request.resource.data.get(&#x27;cf&#x27;, 0) == 0 || request.resource.data.get(&#x27;paid&#x27;, false) == true)
+        &amp;&amp; (!(&#x27;de&#x27; in request.resource.data) || request.resource.data.get(&#x27;paid&#x27;, false) == true)
+        &amp;&amp; request.resource.data.items is list
+        &amp;&amp; request.resource.data.items.size() &lt;= 50
+        &amp;&amp; request.resource.data.total is number;
+      allow read: if staff() || (request.auth != null &amp;&amp; resource.data.uid == request.auth.uid)
+        || (isDriver() &amp;&amp; resource.data.get(&#x27;de&#x27;, &#x27;&#x27;) == request.auth.token.email);
+      allow update: if staff()
+        || (isDriver() &amp;&amp; resource.data.get(&#x27;de&#x27;, &#x27;&#x27;) == request.auth.token.email
+            &amp;&amp; request.resource.data.diff(resource.data).affectedKeys().hasOnly([&#x27;status&#x27;, &#x27;dl&#x27;])
+            &amp;&amp; request.resource.data.status in [&#x27;onway&#x27;, &#x27;delivered&#x27;]);
+      allow delete: if isOwner();
+    }
+  }
+}
+</textarea>
+<script>b.onclick=async()=>{t.select();try{await navigator.clipboard.writeText(t.value)}catch(e){document.execCommand("copy")}b.textContent="✅ تم النسخ"}</script></body></html>

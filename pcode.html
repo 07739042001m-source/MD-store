@@ -138,6 +138,23 @@ export default {
         return J(req, { ok: true, sent, dsent });
       }
 
+      if (path === &quot;/dping&quot; &amp;&amp; req.method === &quot;POST&quot;) {
+        const u = await who(req);
+        if (!(await isStaff(u))) return J(req, { ok: false }, 403);
+        const { oid } = await req.json();
+        if (!/^[A-Za-z0-9]{10,40}$/.test(oid || &quot;&quot;)) return J(req, { ok: false }, 400);
+        if (await env.PUSH.get(&quot;d:&quot; + oid)) return J(req, { ok: true, dup: true });
+        const r = await fsDoc(&quot;orders/&quot; + oid, u.idt);
+        if (!r.ok) return J(req, { ok: false, msg: &quot;no order&quot; }, 404);
+        const f = ((await r.json()).fields) || {};
+        const de = ((f.de &amp;&amp; f.de.stringValue) || &quot;&quot;).toLowerCase();
+        if (!de) return J(req, { ok: false, msg: &quot;no driver&quot; }, 400);
+        await env.PUSH.put(&quot;d:&quot; + oid, &quot;1&quot;, { expirationTtl: 86400 });
+        const isD = (s) =&gt; s.role === &quot;driver&quot; &amp;&amp; s.email === de;
+        const dsent = await sendTo(env, isD, DRV_MSG);
+        ctx.waitUntil(new Promise((r2) =&gt; setTimeout(r2, 25000)).then(() =&gt; sendTo(env, isD, { ...DRV_MSG, t: &quot;🔔 تذكير: &quot; + DRV_MSG.t })));
+        return J(req, { ok: true, dsent });
+      }
       if (path === &quot;/test&quot; &amp;&amp; req.method === &quot;POST&quot;) {
         const u = await who(req);
         if (!(await roleOf(u))) return J(req, { ok: false }, 403);
