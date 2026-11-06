@@ -180,17 +180,18 @@ async function mapPick(){try{await loadLF()}catch(e){er("ما انفتحت ال�
    if(dm=="w"&&!cu.g&&typeof GOVS!="undefined"){const st=nz(String(a.state||"")).replace(/محافظه\s*/,"");const g=GOVS.find(x=>st&&nz(x).includes(st.split(" ")[0]));if(g){cu.g=g;try{localStorage.setItem("md_gov",g)}catch(x){}}}}catch(x){}
   toast("تم تحديد موقعك ✓");if(tab=="cart")cartView()}}
 const WISHB=()=>`<button class="wishb" data-wish><span>🎁</span><div><b>ما لگيت اللي تريده؟</b><small>اطلب أي شي يعجبك ونوفّره إلك</small></div>${I("chev")}</button>`;
-function wishSheet(pre){if(!AC){gate&&gate();return}document.querySelectorAll(".cfw").forEach(x=>x.remove());const o=document.createElement("div");o.className="cfw";
+function wishSheet(pre){const nm=(AC&&AC.n)||cu.n||"",ph=(AC&&AC.p)||cu.p||"";document.querySelectorAll(".cfw").forEach(x=>x.remove());const o=document.createElement("div");o.className="cfw";
  o.innerHTML=`<form class="cfb wsf"><div class="cfi">🎁</div><b>اطلب شي يعجبك</b><p>إذا الشي اللي تريده ما موجود بالتطبيق، اكتبه هنا ونحاول نوفّره إلك ونرد عليك بالسعر.</p>
  <label class="f">شنو تريد؟<textarea class="fld" id="wsn" rows="3" maxlength="400" placeholder="مثلاً: شاحن لابتوب Dell 65 واط، أو كفر ايفون 15 برو جلد" required>${E(pre||"")}</textarea></label>
- <div class="q2"><label class="f">الكمية<input class="fld" id="wsq" type="number" inputmode="numeric" min="1" value="1"></label><label class="f">ميزانيتك (اختياري)<input class="fld" id="wsb" inputmode="numeric" placeholder="د.ع"></label></div>
+ ${nm&&ph?"":`<div class="q2"><label class="f">اسمك<input class="fld" id="wsnm" value="${E(nm)}"></label><label class="f">رقم هاتفك<input class="fld" id="wsph" type="tel" inputmode="tel" value="${E(ph)}"></label></div>`}<div class="q2"><label class="f">الكمية<input class="fld" id="wsq" type="number" inputmode="numeric" min="1" value="1"></label><label class="f">ميزانيتك (اختياري)<input class="fld" id="wsb" inputmode="numeric" placeholder="د.ع"></label></div>
  <p class="err" id="wse"></p><button class="btn" type="submit">${I("send")}أرسل الطلب</button><a class="wsw" href="https://wa.me/${iq(S.wa)}?text=${encodeURIComponent("🎁 أريد أطلب شي مو موجود بالتطبيق، هاي صورته:")}" target="_blank" rel="noopener">${I("wa")}عندك صورة؟ دزها بالواتساب</a><button class="cfl" type="button">سكّر</button></form>`;
  document.body.appendChild(o);setTimeout(()=>{const t=o.querySelector("#wsn");t&&!pre&&t.focus()},200);
  o.addEventListener("click",e=>{if(e.target.closest(".cfl")||e.target===o)o.remove()});
  o.querySelector("form").onsubmit=async e=>{e.preventDefault();const n=o.querySelector("#wsn").value.trim(),q=Math.max(1,parseInt(o.querySelector("#wsq").value,10)||1),bd=o.querySelector("#wsb").value.replace(/[^\d]/g,"");
-  if(n.length<3){o.querySelector("#wse").textContent="اكتب شنو تريد.";return}const b=o.querySelector("[type=submit]");b.disabled=true;
-  const t="🎁 طلب خاص (مو موجود بالتطبيق)\nالمطلوب: "+n+"\nالكمية: "+q+(bd?"\nالميزانية: "+num(+bd)+" د.ع":"")+"\nالاسم: "+(AC.n||"")+"\nالهاتف: "+(AC.p||"");
-  try{await API.sendMine(t,AC.n,AC.p,"a");o.remove();toast("انرسل طلبك ✓ راح نرد عليك بالسعر هنا");CK="a";setTab("chat")}catch(x){b.disabled=false;o.querySelector("#wse").textContent="ما انرسل، تأكد من الإنترنت."}}}
+  const N=(o.querySelector("#wsnm")||{}).value?.trim()||nm,P=(o.querySelector("#wsph")||{}).value?.trim()||ph;
+  if(n.length<3){o.querySelector("#wse").textContent="اكتب شنو تريد.";return}if(!N||P.replace(/\D/g,"").length<10){o.querySelector("#wse").textContent="اكتب اسمك ورقم هاتف صحيح حتى نرد عليك.";return}const b=o.querySelector("[type=submit]");b.disabled=true;
+  const t="🎁 طلب خاص (مو موجود بالتطبيق)\nالمطلوب: "+n+"\nالكمية: "+q+(bd?"\nالميزانية: "+num(+bd)+" د.ع":"")+"\nالاسم: "+N+"\nالهاتف: "+P;
+  try{await API.sendMine(t,N,P,"a");o.remove();toast("انرسل طلبك ✓ راح نرد عليك بالسعر هنا");CK="a";setTab("chat")}catch(x){b.disabled=false;o.querySelector("#wse").textContent="ما انرسل، تأكد من الإنترنت."}}}
 document.addEventListener("click",e=>{const w=e.target.closest("[data-wish]");if(!w)return;e.preventDefault();try{closeDrawer()}catch(x){}wishSheet(w.dataset.wish||"")});
 async function pushInit(){if(!OWN&&!DRV)return;if(await pushSub(false))return;if(document.getElementById("pushb")||!window.Notification||Notification.permission=="denied")return;
  const b=document.createElement("div");b.id="pushb";b.className="pushb";b.innerHTML='<span>🔔 فعّل الإشعارات حتى يجيك صوت بكل طلب حتى لو التطبيق مسكّر</span><button type="button" data-pon>تفعيل</button><button type="button" data-poff aria-label="إغلاق">✕</button>';document.body.appendChild(b);
