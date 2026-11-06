@@ -312,7 +312,7 @@ for(let i=0;i<9;i++)ping(Math.random()*.05,3000+Math.random()*4500,.15+Math.rand
 for(let i=0;i<7;i++){const at=.12+i*.05+Math.random()*.04;ping(at,4000+Math.random()*4000,.08+Math.random()*.1,.05);nz(at,.04,.15,5000)}}catch(e){}}
 function wood(){try{const A=ACX||(ACX=new(window.AudioContext||window.webkitAudioContext)());if(A.state=="suspended")A.resume();const t=A.currentTime+.02,m=A.createGain();m.gain.value=.5;m.connect(A.destination);const d=A.createDelay(),f=A.createGain(),w=A.createGain();d.delayTime.value=.06;f.gain.value=.15;w.gain.value=.1;m.connect(d);d.connect(f);f.connect(d);d.connect(w);w.connect(A.destination);
 [[523.25,.25,.3],[2093,.06,.06]].forEach(([fr,du,v])=>{const o=A.createOscillator(),g=A.createGain();o.frequency.value=fr;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.002);g.gain.exponentialRampToValueAtTime(.0005,t+du);o.connect(g);g.connect(m);o.start(t);o.stop(t+du+.05)})}catch(e){}}
-window.__ann=o=>announce(o);function announce(o){try{const nm=(o.name||"زبون").trim(),pl=(o.address||"").trim(),pt=o.delivery=="parts";
+window.__ann=o=>announce(o);function announce(o){if(o&&o.cf===0)return;try{const nm=(o.name||"زبون").trim(),pl=(o.address||"").trim(),pt=o.delivery=="parts";
 const txt=`هنالك ${pt?"طلبية صيانة":"طلبية اكسسوارات"} من ${nm}${pl?" إلى "+pl:""}`;toast("🔔 "+txt);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
 const say=()=>{if(!window.speechSynthesis)return;speechSynthesis.cancel();const v=speechSynthesis.getVoices().find(x=>/^ar/i.test(x.lang));for(let i=0;i<2;i++){const u=new SpeechSynthesisUtterance(txt);u.lang="ar-SA";if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}};
 chime(false);setTimeout(say,1300)}catch(e){}}
@@ -495,10 +495,8 @@ async function sendNow(to,keep){
   try{localStorage.setItem("md_ppay",JSON.stringify({ref,od,m:orderText(""),cart,n:cu.n,p:cu.p,t:Date.now()}))}catch(e){}
   cart={};sv();badge();location.href=u;return}
  try{no=await API.addOrder(od)}catch(e){}
- const m=orderText(no);if(no)pushPing();
- notify("🔔 بيع جديد (غير مؤكد بعد)\n"+m);if(!keep){cart={};sv();badge()}
- try{await API.sendMine("🛍️ طلب اكسسوارات — ينتظر التأكيد بالواتساب\n"+m,cu.n,cu.p,"a")}catch(e){}
- setTab("orders");if(no)cfSheet(no)}
+ if(!keep){cart={};sv();badge()}
+ setTab("orders");if(no)cfSheet(no);else toast("ما انحفظ الطلب، تأكد من الإنترنت وجرّب مرة ثانية")}
 const cfLink=no=>"https://wa.me/"+iq(S.wa)+"?text="+encodeURIComponent("✅ أؤكّد طلبي رقم #"+no+"\nالاسم: "+(cu.n||(AC&&AC.n)||""));
 function cfSheet(no){document.querySelectorAll(".cfw").forEach(x=>x.remove());const o=document.createElement("div");o.className="cfw";
  o.innerHTML=`<div class="cfb"><div class="cfi">📲</div><b>خطوة أخيرة: أكّد طلبك</b><p>حتى نجهّز طلبك <bdi>#${E(no)}</bdi>، دوس الزر وأرسل الرسالة الجاهزة بالواتساب من رقمك. الطلبات اللي ما تتأكد ما تنرسل.</p><a class="btn cfg" href="${E(cfLink(no))}" target="_blank" rel="noopener">${I("wa")}أكّد طلبي بالواتساب</a><button class="cfl" type="button">بعدين</button></div>`;
